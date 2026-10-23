@@ -1,0 +1,7 @@
+node_modules/
+toolchain/
+release/
+test-results/
+playwright-report/
+sw.js
+licenses/

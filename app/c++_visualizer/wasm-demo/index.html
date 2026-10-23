@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'"
+    />
+    <link rel="icon" href="data:," />
+    <title>Dentro il codice · C++ nel browser</title>
+    <script src="skins.js"></script>
+    <link rel="stylesheet" href="demo.css" />
+    <link rel="stylesheet" href="../flowchart.css" />
+    <link rel="stylesheet" href="skins.css" />
+    <script src="../flowchart-core.js" defer></script>
+    <script src="../flowchart-editor.js" defer></script>
+    <script src="flow-wasm.js" defer></script>
+    <script src="demo.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Vai al contenuto</a>
+    <header class="app-header">
+      <div class="app-identity">
+        <h1>Dentro il codice</h1>
+        <p>Costruisci un algoritmo. Osserva ogni passo.</p>
+      </div>
+      <button
+        type="button"
+        class="settings-link"
+        aria-expanded="false"
+        aria-controls="settings"
+      >
+        Impostazioni
+      </button>
+    </header>
+    <main id="main" tabindex="-1">
+      <details id="settings" class="settings">
+        <summary>Impostazioni</summary>
+        <fieldset class="skin-options">
+          <legend>Aspetto dell’applicazione</legend>
+          <label class="skin-choice">
+            <input type="radio" name="skin" value="laboratorio" />
+            <span
+              ><strong>Laboratorio</strong
+              ><small>Strumenti laterali e area di lavoro ampia.</small></span
+            >
+          </label>
+          <label class="skin-choice">
+            <input type="radio" name="skin" value="mappa" />
+            <span
+              ><strong>Mappa</strong
+              ><small
+                >Diagramma e valori affiancati, percorso in blu.</small
+              ></span
+            >
+          </label>
+          <label class="skin-choice">
+            <input type="radio" name="skin" value="segnali" />
+            <span
+              ><strong>Segnali</strong
+              ><small>Contrasto deciso e passo corrente in giallo.</small></span
+            >
+          </label>
+          <label class="skin-choice">
+            <input type="radio" name="skin" value="classica" />
+            <span
+              ><strong>Classica</strong
+              ><small>Disposizione essenziale in due colonne.</small></span
+            >
+          </label>
+        </fieldset>
+        <p id="skin-status" role="status" aria-live="polite"></p>
+      </details>
+      <details class="quick-guide">
+        <summary>Come si usa</summary>
+        <p>
+          Nei flowchart le osservazioni sono automatiche. Nel codice scritto a
+          mano usa <code>OSSERVA(variabile)</code> per registrare un valore
+          numerico. Inserisci l’input prima dell’avvio, compila e usa Indietro e
+          Avanti per esplorare i passi. Il sorgente rimane nel browser.
+        </p>
+      </details>
+      <div class="command-bar">
+        <div class="toolbar modes" role="group" aria-label="Modalità">
+          <button id="mode-cpp" aria-pressed="true">Codice C++</button
+          ><button id="mode-flow" aria-pressed="false">Flowchart</button>
+        </div>
+        <div class="toolbar">
+          <button id="run">Compila e visualizza</button
+          ><button id="stop" disabled>Interrompi</button>
+          <button id="example">Ripristina esempio</button
+          ><button id="download-source">Scarica .cpp</button
+          ><button id="download" disabled>Scarica .wasm</button
+          ><button id="update" hidden>Aggiorna applicazione</button>
+        </div>
+      </div>
+      <div class="app-status">
+        <p id="status" role="status" aria-live="polite">
+          Pronto. Il compilatore viene caricato al primo uso.
+        </p>
+        <p id="save-status" class="hint" role="status"></p>
+      </div>
+      <div class="workspace">
+        <section class="editor-panel" aria-label="Editor del programma">
+          <div id="cpp-pane">
+            <h2>Programma C++17</h2>
+            <button id="cpp-to-flow" type="button">C++ → Flowchart</button>
+            <label for="code">Codice modificabile</label>
+            <textarea
+              id="code"
+              spellcheck="false"
+              autocapitalize="off"
+              autocomplete="off"
+              translate="no"
+            ></textarea>
+            <p class="hint">
+              Questa prova osserva numeri convertibili in <code>double</code>.
+              Usa nomi distinti: ambiti, array e pila non sono ricostruiti.
+              Input interattivo non incluso.
+            </p>
+          </div>
+          <div id="flow-pane" hidden></div>
+          <p id="flow-hint" class="hint" hidden>
+            Sintassi AlgoBuild: INPUT e assegnamenti su più righe, OUT/OUTLN,
+            tipi stabili e variabili di subroutine. I diagrammi importati
+            conservano gli ambiti C++.
+          </p>
+          <label for="input">Input del programma (prima dell’avvio)</label
+          ><textarea
+            id="input"
+            rows="2"
+            spellcheck="false"
+            autocomplete="off"
+            placeholder="Esempio: 5 10…"
+          ></textarea>
+        </section>
+        <section class="execution-panel" aria-label="Esecuzione del programma">
+          <h2>Stato del programma</h2>
+          <nav aria-label="Passi di esecuzione">
+            <button id="prev" disabled>← Indietro</button>
+            <span id="step">Nessuna esecuzione</span
+            ><button id="next" disabled>Avanti →</button>
+          </nav>
+          <div class="playback-controls">
+            <button id="play" disabled aria-pressed="false">Riproduci</button>
+            <label for="speed">Velocità</label>
+            <select id="speed">
+              <option value="0.5">0,5 passi/s</option>
+              <option value="1">1 passo/s</option>
+              <option value="2" selected>2 passi/s</option>
+              <option value="4">4 passi/s</option>
+              <option value="8">8 passi/s</option>
+            </select>
+          </div>
+          <label for="timeline">Passo</label
+          ><input
+            id="timeline"
+            type="range"
+            min="0"
+            max="0"
+            value="0"
+            aria-describedby="event"
+            disabled
+          />
+          <p id="event" role="status" aria-live="polite">
+            Compila per generare la traccia.
+          </p>
+          <h3 class="values-title">Variabili osservate</h3>
+          <div id="memory" aria-live="polite"></div>
+          <h3 id="source-title">Codice eseguito</h3>
+          <div role="region" aria-labelledby="source-title" tabindex="0">
+            <pre id="source" translate="no"></pre>
+          </div>
+          <h3>Console al passo scelto</h3>
+          <pre id="console">—</pre>
+        </section>
+      </div>
+      <details>
+        <summary>Diagnostica del compilatore</summary>
+        <pre id="diagnostics">—</pre>
+      </details>
+      <footer>
+        Compilatore Clang/LLD WebAssembly, distribuzione
+        <a href="https://github.com/BertalanD/browsercc">browsercc</a>.
+        Compilazione ed esecuzione in un Web Worker interrompibile.
+        <a href="README.md">Limiti e istruzioni</a>.
+      </footer>
+    </main>
+  </body>
+</html>

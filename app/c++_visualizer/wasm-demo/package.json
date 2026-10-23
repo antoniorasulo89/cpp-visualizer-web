@@ -1,0 +1,23 @@
+{
+  "name": "dentro-il-codice-web",
+  "version": "1.1.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "prettier --check .",
+    "build": "node scripts/build.mjs",
+    "test": "playwright test",
+    "test:unit": "node --test tests/unit.test.mjs",
+    "serve": "node scripts/serve.mjs"
+  },
+  "dependencies": {
+    "@bjorn3/browser_wasi_shim": "0.4.2",
+    "browsercc": "0.1.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "axe-core": "4.14.0",
+    "esbuild": "0.28.2",
+    "prettier": "3.6.2"
+  }
+}

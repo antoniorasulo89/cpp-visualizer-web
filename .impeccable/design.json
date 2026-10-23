@@ -1,0 +1,552 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-23T17:03:11.550876+00:00",
+  "title": "Design System: Dentro il codice — web demo",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "tonalRamp": [
+          "oklch(15% 0.008 260)",
+          "oklch(26% 0.008 260)",
+          "oklch(38% 0.008 260)",
+          "oklch(49% 0.008 260)",
+          "oklch(61% 0.008 260)",
+          "oklch(72% 0.008 260)",
+          "oklch(84% 0.008 260)",
+          "oklch(95% 0.008 260)"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26% 0 0)",
+          "oklch(38% 0 0)",
+          "oklch(49% 0 0)",
+          "oklch(61% 0 0)",
+          "oklch(72% 0 0)",
+          "oklch(84% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "oklch(15% 0.045 260)",
+          "oklch(26% 0.045 260)",
+          "oklch(38% 0.045 260)",
+          "oklch(49% 0.045 260)",
+          "oklch(61% 0.045 260)",
+          "oklch(72% 0.045 260)",
+          "oklch(84% 0.045 260)",
+          "oklch(95% 0.045 260)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(15% 0.035 260)",
+          "oklch(26% 0.035 260)",
+          "oklch(38% 0.035 260)",
+          "oklch(49% 0.035 260)",
+          "oklch(61% 0.035 260)",
+          "oklch(72% 0.035 260)",
+          "oklch(84% 0.035 260)",
+          "oklch(95% 0.035 260)"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "tonalRamp": [
+          "oklch(15% 0.025 260)",
+          "oklch(26% 0.025 260)",
+          "oklch(38% 0.025 260)",
+          "oklch(49% 0.025 260)",
+          "oklch(61% 0.025 260)",
+          "oklch(72% 0.025 260)",
+          "oklch(84% 0.025 260)",
+          "oklch(95% 0.025 260)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Accent",
+        "tonalRamp": [
+          "oklch(15% 0.19 262)",
+          "oklch(26% 0.19 262)",
+          "oklch(38% 0.19 262)",
+          "oklch(49% 0.19 262)",
+          "oklch(61% 0.19 262)",
+          "oklch(72% 0.19 262)",
+          "oklch(84% 0.19 262)",
+          "oklch(95% 0.19 262)"
+        ]
+      },
+      "on-accent": {
+        "role": "neutral",
+        "displayName": "On Accent",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26% 0 0)",
+          "oklch(38% 0 0)",
+          "oklch(49% 0 0)",
+          "oklch(61% 0 0)",
+          "oklch(72% 0 0)",
+          "oklch(84% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "selected": {
+        "role": "neutral",
+        "displayName": "Selected",
+        "tonalRamp": [
+          "oklch(15% 0.04 260)",
+          "oklch(26% 0.04 260)",
+          "oklch(38% 0.04 260)",
+          "oklch(49% 0.04 260)",
+          "oklch(61% 0.04 260)",
+          "oklch(72% 0.04 260)",
+          "oklch(84% 0.04 260)",
+          "oklch(95% 0.04 260)"
+        ]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Canvas",
+        "tonalRamp": [
+          "oklch(15% 0.005 260)",
+          "oklch(26% 0.005 260)",
+          "oklch(38% 0.005 260)",
+          "oklch(49% 0.005 260)",
+          "oklch(61% 0.005 260)",
+          "oklch(72% 0.005 260)",
+          "oklch(84% 0.005 260)",
+          "oklch(95% 0.005 260)"
+        ]
+      },
+      "focus": {
+        "role": "neutral",
+        "displayName": "Focus",
+        "tonalRamp": [
+          "oklch(15% 0.19 262)",
+          "oklch(26% 0.19 262)",
+          "oklch(38% 0.19 262)",
+          "oklch(49% 0.19 262)",
+          "oklch(61% 0.19 262)",
+          "oklch(72% 0.19 262)",
+          "oklch(84% 0.19 262)",
+          "oklch(95% 0.19 262)"
+        ]
+      },
+      "error": {
+        "role": "neutral",
+        "displayName": "Error",
+        "tonalRamp": [
+          "oklch(15% 0.16 20)",
+          "oklch(26% 0.16 20)",
+          "oklch(38% 0.16 20)",
+          "oklch(49% 0.16 20)",
+          "oklch(61% 0.16 20)",
+          "oklch(72% 0.16 20)",
+          "oklch(84% 0.16 20)",
+          "oklch(95% 0.16 20)"
+        ]
+      },
+      "success": {
+        "role": "neutral",
+        "displayName": "Success",
+        "tonalRamp": [
+          "oklch(15% 0.09 165)",
+          "oklch(26% 0.09 165)",
+          "oklch(38% 0.09 165)",
+          "oklch(49% 0.09 165)",
+          "oklch(61% 0.09 165)",
+          "oklch(72% 0.09 165)",
+          "oklch(84% 0.09 165)",
+          "oklch(95% 0.09 165)"
+        ]
+      },
+      "success-paper": {
+        "role": "neutral",
+        "displayName": "Success Paper",
+        "tonalRamp": [
+          "oklch(15% 0.04 165)",
+          "oklch(26% 0.04 165)",
+          "oklch(38% 0.04 165)",
+          "oklch(49% 0.04 165)",
+          "oklch(61% 0.04 165)",
+          "oklch(72% 0.04 165)",
+          "oklch(84% 0.04 165)",
+          "oklch(95% 0.04 165)"
+        ]
+      },
+      "error-paper": {
+        "role": "neutral",
+        "displayName": "Error Paper",
+        "tonalRamp": [
+          "oklch(15% 0.035 20)",
+          "oklch(26% 0.035 20)",
+          "oklch(38% 0.035 20)",
+          "oklch(49% 0.035 20)",
+          "oklch(61% 0.035 20)",
+          "oklch(72% 0.035 20)",
+          "oklch(84% 0.035 20)",
+          "oklch(95% 0.035 20)"
+        ]
+      },
+      "mappa-paper": {
+        "role": "neutral",
+        "displayName": "Mappa Paper",
+        "tonalRamp": [
+          "oklch(15% 0.026 255)",
+          "oklch(26% 0.026 255)",
+          "oklch(38% 0.026 255)",
+          "oklch(49% 0.026 255)",
+          "oklch(61% 0.026 255)",
+          "oklch(72% 0.026 255)",
+          "oklch(84% 0.026 255)",
+          "oklch(95% 0.026 255)"
+        ]
+      },
+      "mappa-canvas": {
+        "role": "neutral",
+        "displayName": "Mappa Canvas",
+        "tonalRamp": [
+          "oklch(15% 0.02 255)",
+          "oklch(26% 0.02 255)",
+          "oklch(38% 0.02 255)",
+          "oklch(49% 0.02 255)",
+          "oklch(61% 0.02 255)",
+          "oklch(72% 0.02 255)",
+          "oklch(84% 0.02 255)",
+          "oklch(95% 0.02 255)"
+        ]
+      },
+      "mappa-accent": {
+        "role": "primary",
+        "displayName": "Mappa Accent",
+        "tonalRamp": [
+          "oklch(15% 0.2 260)",
+          "oklch(26% 0.2 260)",
+          "oklch(38% 0.2 260)",
+          "oklch(49% 0.2 260)",
+          "oklch(61% 0.2 260)",
+          "oklch(72% 0.2 260)",
+          "oklch(84% 0.2 260)",
+          "oklch(95% 0.2 260)"
+        ]
+      },
+      "segnali-paper": {
+        "role": "neutral",
+        "displayName": "Segnali Paper",
+        "tonalRamp": [
+          "oklch(15% 0.008 90)",
+          "oklch(26% 0.008 90)",
+          "oklch(38% 0.008 90)",
+          "oklch(49% 0.008 90)",
+          "oklch(61% 0.008 90)",
+          "oklch(72% 0.008 90)",
+          "oklch(84% 0.008 90)",
+          "oklch(95% 0.008 90)"
+        ]
+      },
+      "segnali-ink": {
+        "role": "neutral",
+        "displayName": "Segnali Ink",
+        "tonalRamp": [
+          "oklch(15% 0.015 250)",
+          "oklch(26% 0.015 250)",
+          "oklch(38% 0.015 250)",
+          "oklch(49% 0.015 250)",
+          "oklch(61% 0.015 250)",
+          "oklch(72% 0.015 250)",
+          "oklch(84% 0.015 250)",
+          "oklch(95% 0.015 250)"
+        ]
+      },
+      "segnali-muted": {
+        "role": "neutral",
+        "displayName": "Segnali Muted",
+        "tonalRamp": [
+          "oklch(15% 0.015 250)",
+          "oklch(26% 0.015 250)",
+          "oklch(38% 0.015 250)",
+          "oklch(49% 0.015 250)",
+          "oklch(61% 0.015 250)",
+          "oklch(72% 0.015 250)",
+          "oklch(84% 0.015 250)",
+          "oklch(95% 0.015 250)"
+        ]
+      },
+      "segnali-accent": {
+        "role": "primary",
+        "displayName": "Segnali Accent",
+        "tonalRamp": [
+          "oklch(15% 0.02 250)",
+          "oklch(26% 0.02 250)",
+          "oklch(38% 0.02 250)",
+          "oklch(49% 0.02 250)",
+          "oklch(61% 0.02 250)",
+          "oklch(72% 0.02 250)",
+          "oklch(84% 0.02 250)",
+          "oklch(95% 0.02 250)"
+        ]
+      },
+      "segnali-selected": {
+        "role": "neutral",
+        "displayName": "Segnali Selected",
+        "tonalRamp": [
+          "oklch(15% 0.16 95)",
+          "oklch(26% 0.16 95)",
+          "oklch(38% 0.16 95)",
+          "oklch(49% 0.16 95)",
+          "oklch(61% 0.16 95)",
+          "oklch(72% 0.16 95)",
+          "oklch(84% 0.16 95)",
+          "oklch(95% 0.16 95)"
+        ]
+      },
+      "segnali-rule": {
+        "role": "neutral",
+        "displayName": "Segnali Rule",
+        "tonalRamp": [
+          "oklch(15% 0.014 90)",
+          "oklch(26% 0.014 90)",
+          "oklch(38% 0.014 90)",
+          "oklch(49% 0.014 90)",
+          "oklch(61% 0.014 90)",
+          "oklch(72% 0.014 90)",
+          "oklch(84% 0.014 90)",
+          "oklch(95% 0.014 90)"
+        ]
+      },
+      "classica-paper": {
+        "role": "neutral",
+        "displayName": "Classica Paper",
+        "tonalRamp": [
+          "oklch(15% 0.007 160)",
+          "oklch(26% 0.007 160)",
+          "oklch(38% 0.007 160)",
+          "oklch(49% 0.007 160)",
+          "oklch(61% 0.007 160)",
+          "oklch(72% 0.007 160)",
+          "oklch(84% 0.007 160)",
+          "oklch(95% 0.007 160)"
+        ]
+      },
+      "classica-ink": {
+        "role": "neutral",
+        "displayName": "Classica Ink",
+        "tonalRamp": [
+          "oklch(15% 0.025 170)",
+          "oklch(26% 0.025 170)",
+          "oklch(38% 0.025 170)",
+          "oklch(49% 0.025 170)",
+          "oklch(61% 0.025 170)",
+          "oklch(72% 0.025 170)",
+          "oklch(84% 0.025 170)",
+          "oklch(95% 0.025 170)"
+        ]
+      },
+      "classica-muted": {
+        "role": "neutral",
+        "displayName": "Classica Muted",
+        "tonalRamp": [
+          "oklch(15% 0.025 170)",
+          "oklch(26% 0.025 170)",
+          "oklch(38% 0.025 170)",
+          "oklch(49% 0.025 170)",
+          "oklch(61% 0.025 170)",
+          "oklch(72% 0.025 170)",
+          "oklch(84% 0.025 170)",
+          "oklch(95% 0.025 170)"
+        ]
+      },
+      "classica-rule": {
+        "role": "neutral",
+        "displayName": "Classica Rule",
+        "tonalRamp": [
+          "oklch(15% 0.025 170)",
+          "oklch(26% 0.025 170)",
+          "oklch(38% 0.025 170)",
+          "oklch(49% 0.025 170)",
+          "oklch(61% 0.025 170)",
+          "oklch(72% 0.025 170)",
+          "oklch(84% 0.025 170)",
+          "oklch(95% 0.025 170)"
+        ]
+      },
+      "classica-accent": {
+        "role": "primary",
+        "displayName": "Classica Accent",
+        "tonalRamp": [
+          "oklch(15% 0.075 170)",
+          "oklch(26% 0.075 170)",
+          "oklch(38% 0.075 170)",
+          "oklch(49% 0.075 170)",
+          "oklch(61% 0.075 170)",
+          "oklch(72% 0.075 170)",
+          "oklch(84% 0.075 170)",
+          "oklch(95% 0.075 170)"
+        ]
+      },
+      "classica-selected": {
+        "role": "neutral",
+        "displayName": "Classica Selected",
+        "tonalRamp": [
+          "oklch(15% 0.035 160)",
+          "oklch(26% 0.035 160)",
+          "oklch(38% 0.035 160)",
+          "oklch(49% 0.035 160)",
+          "oklch(61% 0.035 160)",
+          "oklch(72% 0.035 160)",
+          "oklch(84% 0.035 160)",
+          "oklch(95% 0.035 160)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Operational product name",
+        "purpose": "Compact platform-sans title, no display identity."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "skin-choice-transition",
+        "value": "background-color 120ms ease-out, border-color 120ms ease-out",
+        "purpose": "Radio choice hover and checked-state transitions under prefers-reduced-motion: no-preference."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "tool-stack",
+        "value": "1100px"
+      },
+      {
+        "name": "workspace-stack",
+        "value": "850px"
+      },
+      {
+        "name": "flow-fields",
+        "value": "540px"
+      },
+      {
+        "name": "skin-choice-stack",
+        "value": "414px"
+      }
+    ],
+    "focus": [
+      {
+        "name": "control-focus",
+        "value": "3px solid var(--color-focus); outline-offset: 3px",
+        "purpose": "Shared keyboard focus; SVG nodes retain their own stroke focus."
+      }
+    ],
+    "tonalRampNote": "Ramps are synthesized panel visualization metadata; they are not additional shipped color tokens."
+  },
+  "components": [
+    {
+      "name": "Compile command",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Shared compile action.",
+      "html": "<button class=\"ds-primary\">Compila e visualizza</button>",
+      "css": ".ds-primary{font-family:var(--font-ui,\"Segoe UI\",system-ui,sans-serif);font-size:14px;font-weight:600;padding:0.5rem 0.75rem;min-height:40px;border-radius:5px;border:1px solid var(--color-rule,oklch(84% 0.025 260));cursor:pointer;background:var(--color-accent,oklch(45% 0.19 262));color:var(--color-on-accent,white);}.ds-primary:focus-visible{outline:3px solid var(--color-focus,oklch(43% 0.19 262));outline-offset:3px}.ds-primary:disabled{opacity:.45;cursor:default}.ds-primary:hover:not(:disabled){background:var(--color-accent,oklch(45% 0.19 262))}"
+    },
+    {
+      "name": "Secondary command",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Secondary workbench action.",
+      "html": "<button class=\"ds-secondary\">Ripristina esempio</button>",
+      "css": ".ds-secondary{font-family:var(--font-ui,\"Segoe UI\",system-ui,sans-serif);font-size:14px;font-weight:600;padding:0.5rem 0.75rem;min-height:40px;border-radius:5px;border:1px solid var(--color-rule,oklch(84% 0.025 260));cursor:pointer;background:var(--color-panel,white);color:var(--color-ink,oklch(27% 0.045 260));}.ds-secondary:focus-visible{outline:3px solid var(--color-focus,oklch(43% 0.19 262));outline-offset:3px}.ds-secondary:disabled{opacity:.45;cursor:default}.ds-secondary:hover:not(:disabled){background:var(--color-selected,oklch(93% 0.04 260))}"
+    },
+    {
+      "name": "Code field",
+      "kind": "input",
+      "refersTo": "code-field",
+      "description": "Editable monospace source surface.",
+      "html": "<textarea class=\"ds-code\" aria-label=\"Codice modificabile\">int main() {\n  return 0;\n}</textarea>",
+      "css": ".ds-code{width:100%;min-height:120px;padding:16px;border:1px solid var(--color-rule,oklch(84% 0.025 260));border-radius:4px;background:var(--color-canvas,oklch(99% 0.005 260));color:var(--color-ink,oklch(27% 0.045 260));font:15px/1.65 var(--font-code,Consolas,monospace);resize:vertical}.ds-code:focus-visible{outline:3px solid var(--color-focus,oklch(43% 0.19 262));outline-offset:3px}"
+    },
+    {
+      "name": "Workbench panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Editor or execution region.",
+      "html": "<section class=\"ds-panel\"><h2>Stato del programma</h2><p>Compila per generare la traccia.</p></section>",
+      "css": ".ds-panel{font-family:var(--font-ui,\"Segoe UI\",system-ui,sans-serif);font-size:14px;padding:1rem;border:1px solid var(--color-rule,oklch(84% 0.025 260));border-radius:6px;background:var(--color-panel,white);color:var(--color-ink,oklch(27% 0.045 260))}.ds-panel h2{font-size:1.125rem;margin:0 0 1rem}.ds-panel p{line-height:1.6}"
+    },
+    {
+      "name": "Skin choice",
+      "kind": "custom",
+      "refersTo": "skin-choice",
+      "description": "Whole-row native radio selector.",
+      "html": "<label class=\"ds-skin\"><input type=\"radio\" name=\"ds-skin\" checked><span><strong>Laboratorio</strong><small>Strumenti laterali e area di lavoro ampia.</small></span></label>",
+      "css": ".ds-skin{font-family:var(--font-ui,\"Segoe UI\",system-ui,sans-serif);font-size:14px;display:flex;align-items:start;gap:.5rem;padding:.75rem;border:1px solid var(--color-rule,oklch(84% 0.025 260));border-radius:5px;color:var(--color-ink,oklch(27% 0.045 260));cursor:pointer}.ds-skin:hover,.ds-skin:has(input:checked){background:var(--color-selected,oklch(93% 0.04 260));border-color:var(--color-accent,oklch(45% 0.19 262))}.ds-skin input{accent-color:var(--color-accent,oklch(45% 0.19 262));width:18px;height:18px;margin:.25rem 0 0;flex-shrink:0}.ds-skin strong,.ds-skin small{display:block}.ds-skin small{color:var(--color-muted,oklch(44% 0.035 260));line-height:1.5;margin-top:.5rem}.ds-skin input:focus-visible{outline:3px solid var(--color-focus,oklch(43% 0.19 262));outline-offset:3px}@media(prefers-reduced-motion:no-preference){.ds-skin{transition:background-color 120ms ease-out,border-color 120ms ease-out}}"
+    },
+    {
+      "name": "Mode navigation",
+      "kind": "nav",
+      "refersTo": "button-secondary",
+      "description": "Pressed-state source mode controls; snippet previews current state.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Modalità\"><button aria-pressed=\"true\">Codice C++</button><button aria-pressed=\"false\">Flowchart</button></nav>",
+      "css": ".ds-nav{display:flex;flex-wrap:wrap;gap:.5rem}.ds-nav button{font-family:var(--font-ui,\"Segoe UI\",system-ui,sans-serif);font-size:14px;font-weight:600;min-height:40px;padding:.5rem .75rem;border:1px solid var(--color-rule,oklch(84% 0.025 260));border-radius:5px;background:var(--color-panel,white);color:var(--color-ink,oklch(27% 0.045 260))}.ds-nav button[aria-pressed=true],.ds-nav button:hover{background:var(--color-selected,oklch(93% 0.04 260));border-color:var(--color-accent,oklch(45% 0.19 262))}.ds-nav button:focus-visible{outline:3px solid var(--color-focus,oklch(43% 0.19 262));outline-offset:3px}"
+    },
+    {
+      "name": "Observation strip",
+      "kind": "custom",
+      "refersTo": "observation",
+      "description": "Current execution event shared with source/value emphasis.",
+      "html": "<p class=\"ds-event\">Compila per generare la traccia.</p>",
+      "css": ".ds-event{font-family:var(--font-ui,\"Segoe UI\",system-ui,sans-serif);font-size:14px;background:var(--color-selected,oklch(93% 0.04 260));color:var(--color-ink,oklch(27% 0.045 260));padding:.75rem;border-radius:4px;line-height:1.6;margin:.75rem 0}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Selectable Workbench",
+    "overview": "This system describes only `app/c++_visualizer/wasm-demo`, including its shared interactive flowchart. It does not govern other applications in this repository. The workbench keeps program editing and observed execution together for guided lessons and individual study. Four user-selectable skins express the same operational interface: Laboratorio, Mappa, Segnali and Classica. The earlier direction images are references, not exact reproduction specifications.\n\nLight, flat panels, compact controls and code-first typography support concentrated work. Settings changes presentation immediately while preserving the editor, input, diagram and compiled trace. No photographic or illustrative picture requirement is shipped; the flowchart is an interactive SVG generated from runtime data.",
+    "keyCharacteristics": [
+      "Four selectable presentations with one shared engine and data model.",
+      "Flat, bordered work surfaces and restrained state color.",
+      "Platform sans for operations; monospace for source and values.",
+      "Responsive workspace with an internally scrollable flowchart."
+    ],
+    "rules": [
+      {
+        "name": "The Shared State Rule",
+        "body": "Skin colors change presentation; true/false branches keep their shared success/error semantics across skins.",
+        "section": "colors"
+      },
+      {
+        "name": "The Operational Type Rule",
+        "body": "Keep interface language in the platform sans and program syntax, observed values and editable expressions in monospace.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Workbench Rule",
+        "body": "Preserve the existing tonal surfaces and one-pixel structural borders when extending this demo.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** preserve code, input, diagram and compiled trace when changing presentation.",
+      "**Do** use the existing semantic color roles and the selected skin's overrides.",
+      "**Do** keep native controls, visible keyboard focus and state announcements.",
+      "**Do** keep runtime diagram geometry interactive and scroll it within its canvas."
+    ],
+    "donts": [
+      "**Don't** apply this demo's design system to unrelated applications without a separate decision.",
+      "**Don't** treat direction mockups as shipped raster assets or claim exact image reproduction.",
+      "**Don't** introduce a display identity font into this intentionally operational platform interface.",
+      "**Don't** encode branch truth using only a skin's accent color."
+    ]
+  }
+}

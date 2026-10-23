@@ -1,0 +1,257 @@
+:root {
+  color-scheme: light;
+  --ink: #203234;
+  --muted: #536668;
+  --accent: #12675d;
+  --blue: #12675d;
+  --line: #ced9d4;
+  font-family: system-ui, sans-serif;
+  color: var(--ink);
+  background: #f3f5f0;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+header,
+main {
+  max-width: 1400px;
+  margin: auto;
+  padding: 24px 36px;
+}
+header {
+  padding-bottom: 8px;
+}
+a {
+  color: var(--accent);
+}
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  margin-top: 28px;
+}
+h1 {
+  font-size: clamp(28px, 4vw, 46px);
+  letter-spacing: -0.04em;
+  margin: 8px 0;
+}
+h2 {
+  font-size: 20px;
+  margin: 0 0 16px;
+}
+h3 {
+  font-size: 14px;
+  margin-top: 24px;
+}
+p {
+  line-height: 1.6;
+}
+.notice {
+  border-left: 3px solid var(--accent);
+  padding: 10px 18px;
+  background: #e6eee5;
+  margin-top: 0;
+}
+.toolbar,
+nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+button {
+  font: inherit;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  padding: 10px 16px;
+  border-radius: 5px;
+  background: white;
+  color: var(--ink);
+  cursor: pointer;
+}
+#run {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+button:focus-visible,
+textarea:focus-visible,
+input:focus-visible {
+  outline: 3px solid #d19132;
+  outline-offset: 3px;
+}
+#status {
+  min-height: 26px;
+  font-size: 14px;
+}
+#status[data-error="true"] {
+  color: #a12d25;
+}
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+section {
+  min-width: 0;
+  border: 1px solid var(--line);
+  padding: 24px;
+  background: #fff;
+  border-radius: 6px;
+}
+label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 12px 0 8px;
+}
+textarea {
+  width: 100%;
+  min-height: 470px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 16px;
+  tab-size: 4;
+  font:
+    15px/1.65 Consolas,
+    monospace;
+  background: #fbfcfa;
+  color: var(--ink);
+}
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font:
+    14px/1.65 Consolas,
+    monospace;
+  background: #f3f5f0;
+  padding: 14px;
+  border-radius: 4px;
+}
+#source {
+  max-height: 270px;
+  overflow: auto;
+  margin-bottom: 0;
+}
+#source span {
+  display: block;
+  white-space: pre-wrap;
+}
+#source .active {
+  background: #d4eadc;
+  color: #164e3a;
+  font-weight: bold;
+}
+#timeline {
+  width: 100%;
+  accent-color: var(--accent);
+}
+#step {
+  font-size: 13px;
+}
+#memory {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-height: 72px;
+}
+.cell {
+  border: 1px solid var(--line);
+  padding: 10px 18px;
+  min-width: 80px;
+  border-radius: 4px;
+}
+.cell strong {
+  display: block;
+  font:
+    24px Consolas,
+    monospace;
+}
+.cell.changed {
+  border: 2px solid var(--accent);
+  background: #eff8f1;
+}
+.cell small {
+  display: block;
+  color: var(--accent);
+}
+.hint,
+footer {
+  font-size: 13px;
+  color: var(--muted);
+}
+details {
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid var(--line);
+}
+footer {
+  margin-top: 24px;
+  line-height: 1.7;
+}
+@media (max-width: 850px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+  header,
+  main {
+    padding: 20px;
+  }
+  section {
+    padding: 18px;
+  }
+  textarea {
+    min-height: 340px;
+  }
+}
+#input {
+  min-height: 76px;
+  height: 76px;
+}
+#flow-pane {
+  padding: 0;
+}
+[hidden] {
+  display: none !important;
+}
+.toolbar[aria-label="Modalità"] {
+  margin-bottom: 18px;
+}
+.toolbar button[aria-pressed="true"] {
+  background: #d4eadc;
+  border-color: var(--accent);
+}
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  padding: 12px;
+  background: white;
+  z-index: 10;
+}
+.skip-link:focus {
+  top: 12px;
+}
+.cell {
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+.cell strong {
+  font-variant-numeric: tabular-nums;
+}
+a:focus-visible,
+summary:focus-visible,
+[role="region"]:focus-visible {
+  outline: 3px solid #d19132;
+  outline-offset: 3px;
+}
+button:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
