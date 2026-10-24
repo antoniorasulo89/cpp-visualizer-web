@@ -30,6 +30,7 @@ let serial = 0;
 const n = (kind, fields = {}) => ({ id: "new" + ++serial, kind, ...fields });
 test.beforeEach(async ({ page }) => {
   await page.goto("/wasm-demo/");
+  await page.locator("#cpp-trace").selectOption("manual");
 });
 
 test("importazione Clang WASM: funzioni, riferimenti, array, puntatori, stringhe e ambiti C++", async ({

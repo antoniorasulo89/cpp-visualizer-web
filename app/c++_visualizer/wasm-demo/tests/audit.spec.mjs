@@ -56,6 +56,7 @@ function succeeded(result, output) {
 }
 test.beforeEach(async ({ page }) => {
   await page.goto("/wasm-demo/");
+  await page.locator("#cpp-trace").selectOption("manual");
 });
 
 test("F1: alias e parametri condividono l’inizializzazione senza leggere dati ignoti", async ({
@@ -124,7 +125,9 @@ test("F4: hook testuale manuale respinto e budget JS applicato alla traccia real
     );
   await page.locator("#run").click();
   await expect(page.locator("#run")).toBeEnabled({ timeout: 95000 });
-  await expect(page.locator("#status")).toContainText("riservate ai diagrammi");
+  await expect(page.locator("#status")).toContainText(
+    "riservate al tracciamento automatico",
+  );
   const source =
     "#include <iostream>\n#include <string>\nint main(){" +
     Array.from({ length: 80 }, (_, i) => `std::string v${i}(4090,'x');`).join(

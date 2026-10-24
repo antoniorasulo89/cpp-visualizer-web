@@ -1,10 +1,15 @@
-# Dentro il codice — versione web 1.1.1
+# Dentro il codice — versione web 1.2.0
 
-Compilazione C++17, esecuzione WebAssembly/WASI e visualizzazione delle variabili
+Compilazione C++23, esecuzione WebAssembly/WASI e visualizzazione delle variabili
 direttamente nel browser. Nessun sorgente o input viene inviato a servizi di
 compilazione. Il sito pubblicato richiede soltanto file statici su HTTPS.
 
-La revisione 1.1.1 corregge i nove difetti dell'audit d'integrazione: stato degli
+La versione 1.2.0 introduce il tracciamento automatico del C++ scritto nell’editor:
+ogni istruzione registra valori e output, mantenendo le righe del sorgente.
+Non servono macro OSSERVA per i programmi del sottoinsieme didattico.
+Analisi AST e compilazione usano entrambe C++23. Le quattro skin sono conservate.
+
+La revisione 1.1.1 aveva corretto i nove difetti dell'audit d'integrazione: stato degli
 alias, prefissi ++/--, ambiti e dichiarazioni dei FOR tramite AST, EOF
 condizionale, limiti JS della traccia, importazione di tipi non rappresentabili,
 stringhe con NUL e interazione dei tooltip. Conserva le quattro skin e il formato JSON 3.
@@ -55,8 +60,9 @@ wasm-demo/
 Il file di ingresso rinvia a `wasm-demo/`. Tutti i percorsi applicativi sono
 relativi: la release può vivere nella radice o sotto un percorso di progetto.
 GitHub Pages può servire questa struttura senza Python o backend. Il workflow
-`cpp-visualizer-web.yml` esegue build e test e produce un artefatto statico;
-non pubblica automaticamente il sito.
+`pages.yml` esegue build e test su tre runner separati e pubblica automaticamente
+su GitHub Pages dopo il superamento dei controlli. Chromium usa il browser completo
+in modalità headless per verificare anche le trap WebAssembly su Linux.
 
 Servire `.js` come JavaScript, `.wasm` come `application/wasm`, `.gz` come
 `application/gzip`. I file `.gz` sono letti e decompressi dall'applicazione:
@@ -65,8 +71,13 @@ include CSP/nosniff; una CSP in meta è presente anche nel documento HTML.
 
 ## Uso
 
-- **Codice C++:** scrivere il programma e usare `OSSERVA(variabile)` per
-  registrare i valori numerici. La macro è fornita dal runtime del browser.
+- **Codice C++:** il selettore **Tracciamento C++** parte da **Automatico**.
+  Scrivere il programma, compilare e usare Avanti/Indietro: istruzioni, variabili
+  e output sono registrati tramite AST senza modificare il testo nell’editor.
+  Le variabili non inizializzate mostrano `?`; una lettura prima dell’inizializzazione
+  interrompe l’esecuzione conservando la traccia già ricevuta.
+  **Manuale (OSSERVA)** permette di compilare codice fuori dal sottoinsieme
+  automatico e registrare valori numerici con `OSSERVA(variabile)`.
 - **Flowchart:** costruire o aprire un diagramma, quindi premere **Compila e
   visualizza**. Le osservazioni vengono inserite automaticamente. L'esempio
   somma 1…5 e produce 15, con 22 osservazioni e fotografia finale.
@@ -75,6 +86,8 @@ include CSP/nosniff; una CSP in meta è presente anche nel documento HTML.
   valutate una sola volta, anche quando contengono un incremento.
 - Inserire i dati per `cin`/`getline` prima dell'avvio. L'input e l'output sono
   UTF-8; la console non è un terminale interattivo e non aggiunge l'eco dell'input.
+  Ad esempio, per leggere un intero e un reale inserire `5 2.5` nel campo Input:
+  i numeri possono essere separati da spazi o a capo; usare il punto decimale.
 - **Interrompi** termina il Worker. Le fotografie e l'output già ricevuti vengono
   conservati come traccia parziale, anche dopo un errore runtime o un timeout.
 - Errori del flowchart: righe tradotte nel C++ leggibile e selezione del blocco
@@ -130,11 +143,19 @@ rieseguire il programma; la velocità si può cambiare durante la riproduzione e
 è ricordata localmente. Esporta PNG scarica l'intero diagramma della subroutine
 selezionata con la skin attuale, senza comandi di inserimento.
 
-Il codice manuale viene compilato da Clang 20.1.2 (browsercc 0.1.1), C++17,
--O0, eccezioni C++ disabilitate. Le sue osservazioni restano esplicite tramite
-OSSERVA e numeriche, trasmesse come double: interi oltre 2^53 possono perdere
-precisione. L'analisi AST automatica è usata per conversione e tracciamento dei
-flowchart; non è un debugger generale del C++ manuale. Non sono inclusi ruoli,
+Il codice viene compilato da Clang 20.1.2 (browsercc 0.1.1), con `-std=c++23`,
+-O0 ed eccezioni C++ disabilitate. Questo aggiorna il dialetto del linguaggio;
+il compilatore e la libreria WASI restano quelli della toolchain verificata e non
+implementano necessariamente ogni funzionalità di C++23. C++26 non è il default.
+Le osservazioni numeriche sono trasmesse come double: interi oltre 2^53 possono
+perdere precisione. L’automatico usa il sottoinsieme importabile in flowchart
+anche per il C++ scritto a mano e conserva il sorgente originale. Le dichiarazioni
+multiple senza dipendenze sono ammesse (`int x, s;`); separare invece dichiarazioni
+che si riferiscono l’una all’altra (`int x; int y=x;`). Costrutti non supportati
+segnalano come passare a Manuale, senza cambiare automaticamente il comportamento.
+Nei flowchart un adattatore esplicito conserva gli output UTF-8 `u8"..."` dei
+documenti C++17; il C++ scritto a mano segue le regole C++23 per `char8_t`.
+Non è un debugger generale. Non sono inclusi ruoli,
 indirizzi/pila del visualizzatore nativo o UBSan. Un accesso scorretto a un array
 C++ non è necessariamente rilevato se resta nella memoria lineare WebAssembly.
 
@@ -157,7 +178,8 @@ C++ non è necessariamente rilevato se resta nella memoria lineare WebAssembly.
   I timer possono essere ritardati dal browser nelle schede in background.
 - Lo stato finale aggiuntivo rientra nello stesso budget di 8 MiB. Valori
   pendenti e massimo 200 nomi osservati sono controllati anche al confine JS/WASM;
-  l'hook testuale interno non è disponibile per osservazioni C++ manuali.
+  l'hook testuale interno è disponibile nel tracciamento automatico e nei flowchart;
+  è respinto nella modalità Manuale (OSSERVA).
 
 ## Verifica e manutenzione
 

@@ -4,7 +4,9 @@ import { analyze } from "./clang-ast.js";
 import { importFlow } from "./flow-import.js";
 import { instrumentFlow } from "./flow-instrument.js";
 import { TraceStore, visibleText } from "./trace-store.js";
+import { CPP_STANDARD, FLOW_CPP_COMPAT } from "./compiler-options.js";
 self.onmessage = async ({ data }) => {
+  const automatic = data.flow || data.traceMode === "automatic";
   let phase = "loading",
     log = "",
     output = "",
@@ -65,33 +67,61 @@ self.onmessage = async ({ data }) => {
       throw Error("Input: massimo 10.000 byte UTF-8.");
     status("Caricamento della toolchain verificata…");
     let source = data.code;
-    if (data.action === "import" || data.flow) {
+    if (
+      data.traceMode !== undefined &&
+      !["automatic", "manual"].includes(data.traceMode)
+    )
+      throw Error("Modalità di tracciamento non valida.");
+    if (data.action === "import" || automatic) {
       phase = "compiling";
       status(
         data.action === "import"
           ? "Conversione C++ → Flowchart con Clang nel browser…"
-          : "Analisi e osservazioni automatiche del diagramma…",
+          : data.flow
+            ? "Analisi e osservazioni automatiche del diagramma…"
+            : "Analisi dei passi del programma C++…",
       );
-      const ast = await analyze(source);
+      let ast;
+      try {
+        ast = await analyze(source, { flowCompatibility: !!data.flow });
+        // Validate before rewriting. Unsupported programs stay in the editor
+        // and can use the explicit manual mode without a silent fallback.
+        if (data.action !== "import" && !data.flow)
+          importFlow(ast, { validateOnly: true });
+      } catch (error) {
+        if (data.action === "import" || data.flow) throw error;
+        throw Error(
+          `Tracciamento automatico: ${error.message} Seleziona Manuale (OSSERVA) per compilare senza tracciamento automatico.`,
+        );
+      }
       if (data.action === "import") {
         self.postMessage({ type: "imported", document: importFlow(ast) });
         return;
       }
-      source = instrumentFlow(ast, {
-        lineMap: data.lineMap,
-        flow: data.flowInfo,
-      });
+      source = instrumentFlow(
+        ast,
+        data.flow
+          ? {
+              lineMap: data.lineMap,
+              flow: data.flowInfo,
+            }
+          : { automatic: true },
+      );
     }
     const response = await fetch("runtime.hpp");
     if (!response.ok) throw Error("Runtime di osservazione non disponibile.");
     const runtime = await response.text();
     phase = "compiling";
-    status("Compilazione C++17 e collegamento nel browser…");
+    status("Compilazione C++23 e collegamento nel browser…");
     const result = await compile({
-      source: '#include "runtime.hpp"\n#line 1 "programma.cpp"\n' + source,
+      source:
+        '#include "runtime.hpp"\n' +
+        (data.flow ? FLOW_CPP_COMPAT : "") +
+        '#line 1 "programma.cpp"\n' +
+        source,
       fileName: "programma.cpp",
       flags: [
-        "-std=c++17",
+        `-std=${CPP_STANDARD}`,
         "-O0",
         "-fno-exceptions",
         "-fno-color-diagnostics",
@@ -156,11 +186,13 @@ self.onmessage = async ({ data }) => {
         cv_trace(line, pointer, value) {
           const name = nameAt(pointer);
           trace.set(name, Number.isFinite(value) ? value : String(value));
-          if (!data.flow) record({ line, name, values: { ...values }, output });
+          if (!automatic) record({ line, name, values: { ...values }, output });
         },
         cv_text(line, pointer, textPointer, length) {
-          if (!data.flow)
-            throw Error("Osservazioni testuali riservate ai diagrammi.");
+          if (!automatic)
+            throw Error(
+              "Osservazioni testuali riservate al tracciamento automatico.",
+            );
           trace.set(nameAt(pointer), textAt(textPointer, length));
         },
         cv_flow_reset() {

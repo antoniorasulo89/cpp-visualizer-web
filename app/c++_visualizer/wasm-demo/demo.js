@@ -4,19 +4,13 @@ const EXAMPLE = `#include <iostream>
 
 int main() {
     int limite = 5;
-    OSSERVA(limite);
     int somma = 0;
-    OSSERVA(somma);
     int i = 1;
-    OSSERVA(i);
     while (i <= limite) {
         somma += i;
-        OSSERVA(somma);
         ++i;
-        OSSERVA(i);
     }
     std::cout << "Somma = " << somma << std::endl;
-    OSSERVA(somma);
     return 0;
 }`;
 let worker = null,
@@ -87,6 +81,7 @@ try {
 }
 $("code").value = typeof draft?.code === "string" ? draft.code : EXAMPLE;
 $("input").value = typeof draft?.input === "string" ? draft.input : "";
+$("cpp-trace").value = draft?.traceMode === "manual" ? "manual" : "automatic";
 function saveDraft() {
   clearTimeout(saveTimer);
   try {
@@ -98,6 +93,7 @@ function saveDraft() {
         input: $("input").value,
         flow: flow?.document,
         mode,
+        traceMode: $("cpp-trace").value,
       }),
     );
     draftSafe = true;
@@ -143,6 +139,7 @@ function setBusy(busy) {
   $("mode-cpp").disabled = busy;
   $("mode-flow").disabled = busy;
   $("input").readOnly = busy;
+  $("cpp-trace").disabled = busy;
   flow?.setRunning(busy);
 }
 function terminate() {
@@ -216,7 +213,9 @@ function render() {
         ? "Esecuzione terminata · ultimi valori osservati"
         : mode === "flow"
           ? `Blocco: ${flowLabel(state)}${state.result == null ? "" : state.result ? " · condizione VERA" : " · condizione FALSA"}`
-          : `Riga ${state.line} · osservazione di ${state.name}`;
+          : state.name != null
+            ? `Riga ${state.line} · osservazione di ${state.name}`
+            : `Riga ${state.line} · istruzione eseguita${state.result == null ? "" : state.result ? " · condizione VERA" : " · condizione FALSA"}`;
   $("timeline").setAttribute(
     "aria-valuetext",
     state
@@ -438,6 +437,7 @@ $("run").onclick = () => {
   current.postMessage({
     code: sourceToCompile,
     input: $("input").value,
+    traceMode: $("cpp-trace").value,
     flow: mode === "flow",
     lineMap: compiledFlow?.lineMap,
     flowInfo: compiledFlow?.flow,
@@ -602,11 +602,22 @@ function setMode(value) {
   setStatus(
     mode === "flow"
       ? "Diagramma pronto. Le osservazioni sono inserite automaticamente."
-      : "Codice pronto. Usa OSSERVA per registrare i valori.",
+      : $("cpp-trace").value === "automatic"
+        ? "Codice pronto. Istruzioni e variabili saranno osservate automaticamente."
+        : "Codice pronto. Usa OSSERVA per registrare i valori numerici.",
   );
 }
 $("mode-cpp").onclick = () => setMode("cpp");
 $("mode-flow").onclick = () => setMode("flow");
+$("cpp-trace").onchange = () => {
+  clearTrace();
+  saveDraft();
+  setStatus(
+    $("cpp-trace").value === "automatic"
+      ? "Tracciamento automatico: compila per osservare istruzioni e variabili."
+      : "Tracciamento manuale: aggiungi OSSERVA(variabile) nei punti da osservare.",
+  );
+};
 setMode(
   (new URLSearchParams(location.search).get("mode") || draft?.mode) === "flow"
     ? "flow"

@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+const baseURL = `http://127.0.0.1:${Number(process.env.PORT || 8768)}`;
 export default defineConfig({
   testDir: "./tests",
   testMatch: "**/*.spec.mjs",
@@ -7,7 +8,7 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   reporter: [["list"], ["json", { outputFile: "test-results/results.json" }]],
-  use: { baseURL: "http://127.0.0.1:8768", trace: "retain-on-failure" },
+  use: { baseURL, trace: "retain-on-failure" },
   projects: [
     {
       name: "chromium",
@@ -20,7 +21,7 @@ export default defineConfig({
   ],
   webServer: {
     command: "npm run serve",
-    url: "http://127.0.0.1:8768/wasm-demo/",
+    url: `${baseURL}/wasm-demo/`,
     reuseExistingServer: !process.env.CI,
   },
 });

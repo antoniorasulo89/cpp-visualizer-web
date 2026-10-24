@@ -22,7 +22,7 @@ particolare con schede in background. Il Worker viene ritirato a ogni prova.
 Il confine JavaScript/WASM limita a 200 i nomi osservati e controlla i byte dei
 valori pendenti, anche se il programma chiama direttamente gli hook. Lo stato
 finale aggiuntivo usa lo stesso budget della traccia. L'hook testuale è riservato
-alla modalità flowchart; riceve una lunghezza esplicita, verificata insieme al
+al tracciamento automatico del C++ e ai flowchart; riceve una lunghezza esplicita, verificata insieme al
 puntatore prima della decodifica. I caratteri di controllo sono rappresentati
 con escape leggibili. I controlli non dipendono soltanto dalle classi C++ generate.
 
@@ -43,8 +43,9 @@ Bozze e input sono salvati solo nel localStorage dell'origine, senza telemetria.
 Su dispositivi condivisi gli utenti della stessa origine/profilo possono leggerli:
 non usarli per dati personali o segreti. Esportare ciò che serve conservare.
 
-La modalità C++ manuale supporta osservazioni esplicite, non un debugger C++
-completo. Le eccezioni C++ sono disabilitate nella toolchain utilizzata. I controlli
+La modalità C++ automatica valida il sottoinsieme didattico prima di inserire
+osservazioni tramite AST. Quella manuale supporta osservazioni esplicite, non un debugger C++
+completo. Entrambe usano C++23. Le eccezioni C++ sono disabilitate nella toolchain utilizzata. I controlli
 del runtime WebAssembly non equivalgono ai controlli sui limiti degli array C++
 o a UBSan: un accesso errato dentro la memoria lineare può non generare trap.
 

@@ -75,10 +75,11 @@
       <details class="quick-guide">
         <summary>Come si usa</summary>
         <p>
-          Nei flowchart le osservazioni sono automatiche. Nel codice scritto a
-          mano usa <code>OSSERVA(variabile)</code> per registrare un valore
-          numerico. Inserisci l’input prima dell’avvio, compila e usa Indietro e
-          Avanti per esplorare i passi. Il sorgente rimane nel browser.
+          In C++ e nei flowchart i passi sono registrati automaticamente. Per
+          codice avanzato puoi scegliere Manuale e inserire
+          <code>OSSERVA(variabile)</code> nei punti da osservare. Inserisci
+          l’input prima dell’avvio, compila e usa Indietro e Avanti per
+          esplorare i passi. Il sorgente rimane nel browser.
         </p>
       </details>
       <div class="command-bar">
@@ -104,8 +105,17 @@
       <div class="workspace">
         <section class="editor-panel" aria-label="Editor del programma">
           <div id="cpp-pane">
-            <h2>Programma C++17</h2>
+            <h2>Programma C++23</h2>
             <button id="cpp-to-flow" type="button">C++ → Flowchart</button>
+            <div class="playback-controls">
+              <label for="cpp-trace">Tracciamento C++</label>
+              <select id="cpp-trace" aria-describedby="cpp-hint">
+                <option value="automatic" selected>
+                  Automatico · istruzioni e variabili
+                </option>
+                <option value="manual">Manuale (OSSERVA)</option>
+              </select>
+            </div>
             <label for="code">Codice modificabile</label>
             <textarea
               id="code"
@@ -114,10 +124,11 @@
               autocomplete="off"
               translate="no"
             ></textarea>
-            <p class="hint">
-              Questa prova osserva numeri convertibili in <code>double</code>.
-              Usa nomi distinti: ambiti, array e pila non sono ricostruiti.
-              Input interattivo non incluso.
+            <p id="cpp-hint" class="hint">
+              Automatico: segui istruzioni, variabili e output senza aggiungere
+              OSSERVA. Sono supportati i costrutti del sottoinsieme didattico.
+              Inserisci prima tutti i dati di cin, separati da spazi o a capo;
+              per i decimali usa il punto (esempio: 5 2.5).
             </p>
           </div>
           <div id="flow-pane" hidden></div>

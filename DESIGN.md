@@ -171,6 +171,8 @@ The shipped system uses no box shadows. Borders and paper/panel/canvas tones sep
 
 Upstream 442f8ff adds native Popover API block menus and FOR tooltips. In the web demo these inherit skin tokens and use borders without shadows. Multiline block fields have a 5.5rem minimum rather than the source editor height. The playback group uses the same compact controls; speed is a labeled native select. PNG export resolves computed skin colors from the actual SVG.
 
+C++23 adds a labeled native tracing select above the source editor, reusing the playback-control pattern and skin tokens. Automatic tracing is the default; Manual (OSSERVA) is an explicit alternative for programs outside the supported subset. The choice is saved with the draft and locked during compilation.
+
 **The Flat Workbench Rule.** Preserve the existing tonal surfaces and one-pixel structural borders when extending this demo.
 
 ## Shapes

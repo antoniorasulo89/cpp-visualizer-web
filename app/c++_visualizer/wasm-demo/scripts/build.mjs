@@ -122,6 +122,7 @@ const own = [
   "worker.js",
   "flow-wasm.js",
   "clang-ast.js",
+  "compiler-options.js",
   "flow-import.js",
   "flow-instrument.js",
   "trace-store.js",

@@ -2,7 +2,7 @@ import { bounds, errorAt, textOf, unwrap, walk } from "./clang-ast.js";
 
 // Port of upstream flowchart_import.py. Clang WASM supplies the AST; source is
 // never executed for conversion. Unsupported statements abort the entire import.
-export function importFlow(ast) {
+export function importFlow(ast, { validateOnly = false } = {}) {
   let serial = 0;
   const functions = new Map(),
     names = new Map();
@@ -148,6 +148,10 @@ export function importFlow(ast) {
     const kind = n.kind,
       children = n.inner || [];
     if (kind === "NullStmt" || /^OSSERVA\b/.test(text(n))) return [];
+    // Direct C++ tracing preserves lexical blocks in the original AST. They
+    // can be validated recursively even though the diagram format cannot
+    // represent a standalone scope. Never export the flattened validation data.
+    if (validateOnly && kind === "CompoundStmt") return body(n, depth + 1);
     if (kind === "DeclStmt") return declaration(n);
     if (["IfStmt", "WhileStmt"].includes(kind)) {
       if (n.hasInit || n.hasVar)
@@ -340,6 +344,7 @@ export function importFlow(ast) {
   });
   if (result.length > 20 || result.some((fn) => fn.params.length > 12))
     throw Error("Superati i limiti di subroutine o parametri.");
+  if (validateOnly) return;
   result.sort((a, b) => (a.id !== "main") - (b.id !== "main"));
   return {
     format: "dentro-il-codice-flowchart",

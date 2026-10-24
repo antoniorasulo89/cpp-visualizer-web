@@ -46,6 +46,7 @@ export function instrumentFlow(ast, generated) {
   };
   function readsAndWrites(n, depth = 0, skipObjectRead = false) {
     if (!n?.kind) return;
+    if (generated.automatic && n.range?.begin?.expansionLoc) return;
     const children = n.inner || [],
       range = bounds(n);
     if (n.kind === "ImplicitCastExpr" && n.castKind === "LValueToRValue") {
@@ -164,13 +165,50 @@ export function instrumentFlow(ast, generated) {
     if (!range) return null;
     let end = range[1];
     if (n.kind !== "CompoundStmt") {
-      while ([9, 13, 32].includes(ast.bytes[end])) end++;
-      if (ast.bytes[end] === 59) end++;
+      let token = end;
+      // Clang's expression range excludes ';', which may follow comments or
+      // line breaks in handwritten code. Keep those bytes and their line map.
+      while (token < ast.bytes.length) {
+        if ([9, 10, 13, 32].includes(ast.bytes[token])) {
+          token++;
+          continue;
+        }
+        if (ast.bytes[token] === 47 && ast.bytes[token + 1] === 47) {
+          while (token < ast.bytes.length && ast.bytes[token] !== 10) token++;
+          continue;
+        }
+        if (ast.bytes[token] === 47 && ast.bytes[token + 1] === 42) {
+          token += 2;
+          while (
+            token + 1 < ast.bytes.length &&
+            !(ast.bytes[token] === 42 && ast.bytes[token + 1] === 47)
+          )
+            token++;
+          token += 2;
+          continue;
+        }
+        break;
+      }
+      if (ast.bytes[token] === 59) end = token + 1;
     }
     return end;
   }
   const snap = (line) => `::__cv_runtime::snapshot(${line});`;
   function declarations(n) {
+    if (generated.automatic) {
+      const variables = n.inner || [],
+        ids = new Set(variables.map((v) => v.id));
+      if (
+        variables.some((v) =>
+          [...walk(v)].some(
+            (c) => c.kind === "DeclRefExpr" && ids.has(c.referencedDecl?.id),
+          ),
+        )
+      )
+        throw Error(
+          "Tracciamento automatico: separa le dichiarazioni che dipendono l’una dall’altra (esempio: int x; int y=x;). Puoi anche selezionare Manuale (OSSERVA).",
+        );
+    }
     return (n.inner || [])
       .filter((c) => c.kind === "VarDecl")
       .map((variable) => {
@@ -185,19 +223,29 @@ export function instrumentFlow(ast, generated) {
   function sequence(n) {
     for (const child of n.inner || []) statement(child);
   }
+  function controlBody(n) {
+    // A handwritten single-statement body needs a scope for all inserted
+    // statements, including snapshots before break/continue and nested else.
+    if (generated.automatic && n?.kind !== "CompoundStmt" && bounds(n)) {
+      insert(bounds(n)[0], "{ ", -9000);
+      insert(finish(n), " }", -18000);
+    }
+    statement(n);
+  }
   function statement(n) {
+    if (generated.automatic && n?.range?.begin?.expansionLoc) return;
     const range = bounds(n);
     if (!range) return;
     const children = n.inner || [],
       line = lineAt(range[0]),
-      point = generated.lineMap[line];
+      point = generated.lineMap?.[line] || (generated.automatic ? {} : null);
     if (n.kind === "CompoundStmt") {
       sequence(n);
       return;
     }
     if (["IfStmt", "WhileStmt"].includes(n.kind)) {
       wrap(children[0], `::__cv_runtime::test(${line},(`, "))", -4000);
-      children.slice(1).forEach(statement);
+      children.slice(1).forEach(controlBody);
       return;
     }
     if (n.kind === "ForStmt") {
@@ -212,11 +260,11 @@ export function instrumentFlow(ast, generated) {
         for (let p = range[0]; p < start; p++) replaceByte(p);
         insert(range[0], "{ ", -6000);
         insert(end, declarations(init) + "for (;", -10000);
-        insert(range[1], " }", 7000);
+        insert(finish(n), " }", -18000);
       }
       if (bounds(children[2]))
         wrap(children[2], `::__cv_runtime::test(${line},(`, "))", -4000);
-      statement(children[4]);
+      controlBody(children[4]);
       return;
     }
     if (n.kind === "DoStmt") {
@@ -227,7 +275,7 @@ export function instrumentFlow(ast, generated) {
         "))",
         -4000,
       );
-      statement(children[0]);
+      controlBody(children[0]);
       return;
     }
     if (n.kind === "ReturnStmt") {
@@ -249,18 +297,21 @@ export function instrumentFlow(ast, generated) {
       if (variable) insert(range[0], `${variable.guard}.visible=true;`, -5000);
     }
     const end = finish(n);
-    if (n.kind === "DeclStmt") insert(end, declarations(n), 5000);
+    // A preceding statement can end at the exact byte where the next one
+    // begins ("int x; x=1;" without whitespace). Finish its observers and
+    // scopes before opening any expression wrapper for that next statement.
+    if (n.kind === "DeclStmt") insert(end, declarations(n), -20000);
     if (
-      generated.flow?.requiredInputs?.includes(line) &&
+      (generated.automatic || generated.flow?.requiredInputs?.includes(line)) &&
       [...walk(n)].some(
         (c) =>
           c.referencedDecl?.name === "operator>>" ||
           c.referencedDecl?.name === "getline",
       )
     )
-      insert(end, "::__cv_runtime::requireInput();", 5500);
+      insert(end, "::__cv_runtime::requireInput();", -19500);
     if (point.phase !== "prepare" && n.kind !== "NullStmt")
-      insert(end, snap(line), 6000);
+      insert(end, snap(line), -19000);
   }
   for (const fn of functions) {
     const body = fn.inner.find((c) => c.kind === "CompoundStmt"),
@@ -277,7 +328,10 @@ export function instrumentFlow(ast, generated) {
       `::__cv_runtime::Frame __cv_frame(${JSON.stringify(fn.name)});${params}${snap(lineAt(range[0]))}`,
       -6000,
     );
-    if (fn.type.qualType.startsWith("void "))
+    if (
+      fn.type.qualType.startsWith("void ") ||
+      (generated.automatic && fn.name === "main")
+    )
       insert(range[1] - 1, snap(lineAt(range[1] - 1)), 5000);
     readsAndWrites(body);
     sequence(body);

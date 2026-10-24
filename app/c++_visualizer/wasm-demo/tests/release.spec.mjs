@@ -48,10 +48,20 @@ async function flow(page) {
 }
 test.beforeEach(async ({ page }) => {
   await page.goto("/wasm-demo/");
+  await page.locator("#cpp-trace").selectOption("manual");
 });
 test("C++ e flowchart: calcolo, passi, rami, download e limite fisico memoria", async ({
   page,
 }) => {
+  await page.locator("#code").fill(`#include <iostream>
+int main() {
+  int limite=5; OSSERVA(limite);
+  int somma=0; OSSERVA(somma);
+  int i=1; OSSERVA(i);
+  while(i<=limite) { somma+=i; OSSERVA(somma); ++i; OSSERVA(i); }
+  std::cout<<"Somma = "<<somma<<std::endl; OSSERVA(somma);
+  return 0;
+}`);
   await run(page);
   await expect(page.locator("#status")).toContainText("14 osservazioni");
   await end(page);
@@ -346,6 +356,7 @@ test.describe("accessibilità con script di verifica intercettato", () => {
   });
 });
 test("offline dopo il primo uso", async ({ page, context }) => {
+  await page.locator("#cpp-trace").selectOption("automatic");
   await run(page);
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;

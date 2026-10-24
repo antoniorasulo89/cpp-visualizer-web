@@ -4,10 +4,11 @@ import {
   getCompilerInvocation,
 } from "./toolchain/index.js";
 import { loadAsset } from "./assets.js";
+import { CPP_STANDARD, FLOW_CPP_COMPAT } from "./compiler-options.js";
 
 // UTF-8 offsets are supplied by Clang. Keep directives as blank lines so the
 // original line numbers and all offsets inside the user body remain stable.
-export async function analyze(source) {
+export async function analyze(source, { flowCompatibility = false } = {}) {
   const body = source.replace(
     /^\s*#\s*include\s*[<"]([^>"\n]+)[>"]\s*$/gm,
     (line, header) => {
@@ -21,7 +22,9 @@ export async function analyze(source) {
       "Importazione: macro e direttive diverse dagli include supportati non sono ammesse.",
     );
   const prefix =
-    "#include <iostream>\n#include <string>\n#include <iomanip>\n#include <type_traits>\n#define OSSERVA(x) ((void)(x))\nnamespace __cv_user {\n";
+    "#include <iostream>\n#include <string>\n#include <iomanip>\n#include <type_traits>\n" +
+    (flowCompatibility ? FLOW_CPP_COMPAT : "") +
+    "#define OSSERVA(x) ((void)(x))\nnamespace __cv_user {\n";
   const full = prefix + body + "\n}\n";
   let output = "",
     errors = "";
@@ -40,7 +43,7 @@ export async function analyze(source) {
   setUpSysroot(compiler, (await loadAsset("sysroot.tar")).buffer, {});
   compiler.FS.writeFile("programma.cpp", full);
   const invocation = await getCompilerInvocation("programma.cpp", full, [
-    "-std=c++17",
+    `-std=${CPP_STANDARD}`,
     "-O0",
     "-fno-exceptions",
   ]);
