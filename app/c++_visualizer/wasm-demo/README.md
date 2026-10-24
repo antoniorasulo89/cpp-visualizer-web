@@ -1,10 +1,17 @@
-# Dentro il codice — versione web 1.2.0
+# Dentro il codice — versione web 1.3.0
 
 Compilazione C++23, esecuzione WebAssembly/WASI e visualizzazione delle variabili
 direttamente nel browser. Nessun sorgente o input viene inviato a servizi di
 compilazione. Il sito pubblicato richiede soltanto file statici su HTTPS.
 
-La versione 1.2.0 introduce il tracciamento automatico del C++ scritto nell’editor:
+La versione 1.3.0 aggiunge l'input interattivo in C++ e nei flowchart: il motore
+si sospende davvero e chiede un valore al momento della lettura. Dopo la conferma
+il valore raggiunge la cella della variabile con un'animazione breve, oppure con
+un'evidenziazione se il dispositivo richiede movimento ridotto. Lo stack viene
+conservato con Asyncify, senza rieseguire le istruzioni precedenti e senza
+richiedere intestazioni speciali a GitHub Pages. Resta disponibile l'input preparato.
+
+La versione 1.2.0 ha introdotto il tracciamento automatico del C++ scritto nell’editor:
 ogni istruzione registra valori e output, mantenendo le righe del sorgente.
 Non servono macro OSSERVA per i programmi del sottoinsieme didattico.
 Analisi AST e compilazione usano entrambe C++23. Le quattro skin sono conservate.
@@ -81,10 +88,19 @@ include CSP/nosniff; una CSP in meta è presente anche nel documento HTML.
 - **Flowchart:** costruire o aprire un diagramma, quindi premere **Compila e
   visualizza**. Le osservazioni vengono inserite automaticamente. L'esempio
   somma 1…5 e produce 15, con 22 osservazioni e fotografia finale.
-- **Avanti/Indietro** e cursore navigano fotografie registrate. Il blocco attivo,
+- Con **Chiedi durante l'esecuzione**, **Avanti** esegue la prossima istruzione.
+  La lettura apre un riquadro centrale con nome, tipo e richiesta del programma.
+  Confermare con Invio o **Conferma valore**; usare **Fine input** per segnalare EOF.
+  **Interrompi** o Esc terminano l'esecuzione conservando i passi già prodotti.
+  Le attese dell'utente non consumano il timeout di esecuzione. Numeri reali:
+  usare il punto decimale; ogni risposta è una riga terminata da un a capo.
+  **Riproduci** procede alla velocità scelta e si ferma quando serve un input;
+  dopo la risposta riprendere con **Avanti** o **Riproduci**.
+- **Avanti/Indietro** e cursore navigano anche fotografie già registrate. Il blocco attivo,
   gli esiti Vero/Falso e la console seguono il passo. Le condizioni vengono
   valutate una sola volta, anche quando contengono un incremento.
-- Inserire i dati per `cin`/`getline` prima dell'avvio. L'input e l'output sono
+- Selezionare **Input preparato** per inserire tutti i dati prima dell'avvio e
+  registrare l'intera esecuzione senza pause. L'input e l'output sono
   UTF-8; la console non è un terminale interattivo e non aggiunge l'eco dell'input.
   Ad esempio, per leggere un intero e un reale inserire `5 2.5` nel campo Input:
   i numeri possono essere separati da spazi o a capo; usare il punto decimale.
@@ -97,8 +113,16 @@ include CSP/nosniff; una CSP in meta è presente anche nel documento HTML.
   scaricati; nel sorgente manuale esportato la macro OSSERVA richiede una definizione
   se si vuole compilare fuori da questa applicazione.
 - Il download `.wasm` contiene un comando WASI preview1 con eventuali importazioni
-  `env.cv_trace`, `env.cv_text`, `env.cv_flow_reset`, `env.cv_flow_commit`: un runtime esterno deve
-  implementarle. Non è un eseguibile Windows/macOS.
+  `env.cv_trace`, `env.cv_text`, `env.cv_flow_reset`, `env.cv_flow_commit`,
+  `env.cv_input`: un runtime esterno deve implementarle e, per un binario
+  interattivo, gestire Asyncify. Non è un eseguibile Windows/macOS.
+
+Il nome, il tipo e il trasferimento verso la cella sono disponibili per le
+letture strumentate del C++ automatico e dei flowchart. In modalità manuale
+le letture standard sospendono il motore con un riquadro generico; le variabili
+visibili dipendono dalle macro OSSERVA. Un dato già presente nel buffer di
+`cin` non richiede un altro riquadro: `getline` dopo un numero conserva quindi
+il normale comportamento C++ sull'a capo rimasto nel flusso.
 
 ## Perimetro supportato
 
@@ -161,20 +185,23 @@ C++ non è necessariamente rilevato se resta nella memoria lineare WebAssembly.
 
 ## Risorse e limiti
 
-- Primo uso: circa **29,7 MB decimali / 28,3 MiB compressi** per binari e sysroot,
+- Primo uso interattivo: circa **32,0 MB decimali / 30,5 MiB compressi** per binari e sysroot,
   più interfaccia e runtime. Se DecompressionStream non è disponibile si usano
-  gli asset non compressi, circa 94,4 MB. Nessun CDN richiesto a runtime.
+  gli asset non compressi, circa 104,3 MB. L'input preparato non carica il binario
+  Binaryen (circa 2,3 MB compressi). Nessun CDN richiesto a runtime.
 - Uso offline dopo un primo caricamento completo con service worker attivo;
   il browser può comunque cancellare la cache per liberare spazio. Lo storage
   non è un backup: esportare il lavoro importante.
 - Aggiornamenti: una nuova versione segnala **Aggiorna applicazione**. La prima
   installazione del service worker non ricarica la pagina mentre si lavora.
 - Memoria lineare del programma: massimo **64 MiB**, stack lineare 1 MiB.
-  Compilatore e linker: massimo **512 MiB per modulo**. Il processo browser ha
+  Compilatore, linker e Binaryen: massimo **512 MiB per modulo**. Il processo browser ha
   anche heap JavaScript e copie dei dati: questi non sono limiti alla RAM totale.
 - 800 osservazioni, traccia stimata massima 8 MiB, output 20.000 byte, input
   10.000 byte UTF-8, sorgente manuale 30.000 byte, generato prima della strumentazione 128 KiB, strumentato 256 KiB.
 - Timeout 90 secondi per caricamento/compilazione e 5 secondi per esecuzione.
+  Nel modo interattivo i 5 secondi valgono per ogni tratto tra due pause;
+  l'attesa di un comando o di un valore non consuma il budget.
   I timer possono essere ritardati dal browser nelle schede in background.
 - Lo stato finale aggiuntivo rientra nello stesso budget di 8 MiB. Valori
   pendenti e massimo 200 nomi osservati sono controllati anche al confine JS/WASM;

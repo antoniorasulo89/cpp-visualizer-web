@@ -1,5 +1,11 @@
 # Componenti di terze parti
 
+- Binaryen 132.0.0 — contributori Binaryen — Apache 2.0, inclusa in
+  toolchain/LICENSE.binaryen. Il passaggio Asyncify permette di sospendere e
+  riprendere lo stack WebAssembly. La build separa il binario dal loader e
+  impone un massimo di 512 MiB alla memoria; hash nel manifest.
+  https://github.com/WebAssembly/binaryen
+
 - browsercc 0.1.1 — Daniel Bertalan — MIT, inclusa in toolchain/LICENSE.browsercc.
   https://github.com/BertalanD/browsercc
 - Clang/LLVM/LLD e relative componenti della toolchain — Apache 2.0 con LLVM

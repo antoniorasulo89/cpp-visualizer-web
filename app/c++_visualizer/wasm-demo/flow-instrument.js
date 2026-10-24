@@ -125,7 +125,12 @@ export function instrumentFlow(ast, generated) {
       );
       const target = guardOf(children[2]);
       if (operator && target)
-        wrap(children[2], "::__cv_runtime::destination((", "))", -3000 + depth);
+        wrap(
+          children[2],
+          "::__cv_runtime::destination((",
+          `),${lineAt(range[0])})`,
+          -3000 + depth,
+        );
     }
     if (
       n.kind === "CallExpr" &&
@@ -139,6 +144,7 @@ export function instrumentFlow(ast, generated) {
         const callee = bounds(children[0]);
         for (let p = callee[0]; p < callee[1]; p++) replaceByte(p);
         insert(callee[0], "::__cv_runtime::readLine", -3000 + depth);
+        insert(range[1] - 1, `,${lineAt(range[0])}`, 3000 - depth);
       }
     }
     const getline =

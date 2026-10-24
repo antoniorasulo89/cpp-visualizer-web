@@ -47,7 +47,7 @@ async function flow(page) {
   await page.getByRole("button", { name: "Flowchart", exact: true }).click();
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto("/wasm-demo/");
+  await page.goto("/wasm-demo/?input=prepared");
   await page.locator("#cpp-trace").selectOption("manual");
 });
 test("C++ e flowchart: calcolo, passi, rami, download e limite fisico memoria", async ({

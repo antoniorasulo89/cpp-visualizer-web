@@ -163,6 +163,69 @@ summary {
   border: 1px solid var(--color-rule);
   font-family: var(--font-ui);
 }
+#input-dialog {
+  box-sizing: border-box;
+  width: min(480px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: var(--space-lg);
+  border: 1px solid var(--color-rule);
+  border-radius: 6px;
+  color: var(--color-ink);
+  background: var(--color-panel);
+}
+#input-dialog::backdrop {
+  background: color-mix(in oklch, var(--color-ink) 32%, transparent);
+}
+#input-dialog h2 {
+  margin: 0 0 var(--space-md);
+}
+#input-prompt {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+#input-value {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 48px;
+  padding: var(--space-sm);
+  border: 1px solid var(--color-rule);
+  border-radius: 4px;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font: 18px var(--font-code);
+  caret-color: var(--color-accent);
+}
+#input-error {
+  min-height: 1.5em;
+  color: var(--color-error);
+  overflow-wrap: anywhere;
+}
+#input-dialog button[type="submit"] {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+.input-target {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+.input-arrived {
+  background: var(--color-selected);
+  border-color: var(--color-accent);
+}
+.input-flight {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-selected);
+  color: var(--color-ink);
+  border: 1px solid var(--color-accent);
+  border-radius: 4px;
+  font: 24px var(--font-code);
+  max-width: 70vw;
+  overflow-wrap: anywhere;
+}
 button {
   padding: var(--space-xs) var(--space-sm);
   background: var(--color-panel);

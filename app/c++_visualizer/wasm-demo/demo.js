@@ -1,4 +1,5 @@
 "use strict";
+import { InputDialog } from "./input-dialog.js";
 const $ = (id) => document.getElementById(id);
 const EXAMPLE = `#include <iostream>
 
@@ -28,6 +29,8 @@ let liveStates = [],
   saveTimer;
 let playbackTimer = null,
   importing = false;
+let waiting = null,
+  inputDialog = null;
 const SPEED_KEY =
   "dentro-il-codice-speed-v1:" + new URL(".", location.href).pathname;
 try {
@@ -42,13 +45,15 @@ function pausePlayback() {
 }
 function startPlayback() {
   if (!states.length) return;
-  if (cursor >= states.length - 1) cursor = 0;
+  if (!worker && cursor >= states.length - 1) cursor = 0;
   $("play").textContent = "Pausa";
   $("play").setAttribute("aria-pressed", "true");
   playbackTimer = setInterval(
     () => {
       if (cursor >= states.length - 1) {
-        pausePlayback();
+        if (worker) {
+          if (waiting?.reason === "step") resumeStep();
+        } else pausePlayback();
         return;
       }
       ++cursor;
@@ -82,6 +87,10 @@ try {
 $("code").value = typeof draft?.code === "string" ? draft.code : EXAMPLE;
 $("input").value = typeof draft?.input === "string" ? draft.input : "";
 $("cpp-trace").value = draft?.traceMode === "manual" ? "manual" : "automatic";
+const inputChoice =
+  new URLSearchParams(location.search).get("input") || draft?.inputMode;
+$("input-mode").value = inputChoice === "prepared" ? "prepared" : "interactive";
+$("prepared-input").hidden = $("input-mode").value !== "prepared";
 function saveDraft() {
   clearTimeout(saveTimer);
   try {
@@ -94,6 +103,7 @@ function saveDraft() {
         flow: flow?.document,
         mode,
         traceMode: $("cpp-trace").value,
+        inputMode: $("input-mode").value,
       }),
     );
     draftSafe = true;
@@ -140,12 +150,15 @@ function setBusy(busy) {
   $("mode-flow").disabled = busy;
   $("input").readOnly = busy;
   $("cpp-trace").disabled = busy;
+  $("input-mode").disabled = busy;
   flow?.setRunning(busy);
 }
 function terminate() {
   clearTimeout(timer);
   worker?.terminate();
   worker = null;
+  waiting = null;
+  inputDialog?.close();
   setBusy(false);
 }
 function clearTrace() {
@@ -197,25 +210,30 @@ function diagnostics(text) {
 function render() {
   const state = states[cursor];
   $("prev").disabled = !state || cursor === 0;
-  $("next").disabled = !state || cursor === states.length - 1;
-  $("timeline").disabled = !state;
-  $("play").disabled = !state || !!worker;
+  $("next").disabled =
+    !state || (cursor === states.length - 1 && waiting?.reason !== "step");
+  $("timeline").disabled = !state || waiting?.reason === "input";
+  $("play").disabled = !state || importing || waiting?.reason === "input";
   $("timeline").max = String(Math.max(0, states.length - 1));
   $("timeline").value = String(cursor);
   $("step").textContent = state
-    ? `${cursor + 1} / ${states.length}`
+    ? worker
+      ? `Passo ${cursor + 1} · esecuzione in corso`
+      : `${cursor + 1} / ${states.length}`
     : "Nessuna esecuzione";
   $("event").textContent = !state
     ? "Compila per generare la traccia."
-    : state.partial
-      ? "Esecuzione interrotta · ultimo stato disponibile"
-      : state.final
-        ? "Esecuzione terminata · ultimi valori osservati"
-        : mode === "flow"
-          ? `Blocco: ${flowLabel(state)}${state.result == null ? "" : state.result ? " · condizione VERA" : " · condizione FALSA"}`
-          : state.name != null
-            ? `Riga ${state.line} · osservazione di ${state.name}`
-            : `Riga ${state.line} · istruzione eseguita${state.result == null ? "" : state.result ? " · condizione VERA" : " · condizione FALSA"}`;
+    : state.awaitingInput
+      ? `Riga ${state.line} · in attesa di un valore`
+      : state.partial
+        ? "Esecuzione interrotta · ultimo stato disponibile"
+        : state.final
+          ? "Esecuzione terminata · ultimi valori osservati"
+          : mode === "flow"
+            ? `Blocco: ${flowLabel(state)}${state.result == null ? "" : state.result ? " · condizione VERA" : " · condizione FALSA"}`
+            : state.name != null
+              ? `Riga ${state.line} · osservazione di ${state.name}`
+              : `Riga ${state.line} · istruzione eseguita${state.result == null ? "" : state.result ? " · condizione VERA" : " · condizione FALSA"}`;
   $("timeline").setAttribute(
     "aria-valuetext",
     state
@@ -270,6 +288,7 @@ function render() {
     const cell = document.createElement("div");
     const changed = cursor > 0 && states[cursor - 1].values[name] !== value;
     cell.className = `cell${changed ? " changed" : ""}`;
+    cell.dataset.variable = name;
     const label = document.createElement("span");
     label.textContent = name;
     const number = document.createElement("strong");
@@ -321,6 +340,7 @@ $("run").onclick = () => {
   $("diagnostics").textContent = "—";
   $("diagnostics").parentElement.open = false;
   saveDraft();
+  const interactiveRun = $("input-mode").value === "interactive";
   let sourceToCompile = $("code").value;
   compiledFlow = null;
   if (mode === "flow") {
@@ -383,7 +403,7 @@ $("run").onclick = () => {
     "Caricamento o compilazione oltre 90 secondi. Puoi riprovare.",
   );
   setStatus("Avvio del compilatore WebAssembly…");
-  current.onmessage = ({ data }) => {
+  current.onmessage = async ({ data }) => {
     if (worker !== current) return;
     if (data.type === "status") {
       setStatus(data.text);
@@ -394,11 +414,51 @@ $("run").onclick = () => {
         );
     } else if (data.type === "progress") {
       liveStates.push(data.state);
+      if (interactiveRun) {
+        states = [...liveStates];
+        cursor = states.length - 1;
+        render();
+        if (!data.state.awaitingInput) inputDialog?.transfer();
+      }
     } else if (data.type === "output") {
       liveOutput += data.chunk;
+    } else if (data.type === "paused") {
+      clearTimeout(timer);
+      waiting = data;
+      if (data.reason === "step") {
+        $("next").disabled = false;
+        setStatus("Esecuzione in pausa. Avanti esegue la prossima istruzione.");
+        $("play").disabled = false;
+        if (!playbackTimer && cursor === states.length - 1)
+          $("next").focus({ preventScroll: true });
+      } else {
+        pausePlayback();
+        $("play").disabled = true;
+        setStatus(
+          data.name
+            ? `In attesa del valore per ${data.name}.`
+            : "In attesa di input.",
+        );
+        if (worker !== current || waiting?.id !== data.id) return;
+        inputDialog ||= new InputDialog(
+          (message) => worker?.postMessage(message),
+          () => $("stop").click(),
+        );
+        inputDialog.show(data);
+      }
+    } else if (data.type === "input-error") {
+      if (waiting?.id === data.id) inputDialog?.showError(data.text);
+    } else if (data.type === "input-accepted") {
+      if (waiting?.id !== data.id) return;
+      inputDialog?.accepted(data);
+      waiting = null;
+      armTimeout(
+        5000,
+        "Esecuzione interrotta dopo 5 secondi. Controlla eventuali cicli infiniti.",
+      );
     } else if (data.type === "done") {
       states = data.states;
-      cursor = 0;
+      cursor = interactiveRun ? Math.max(0, states.length - 1) : 0;
       wasmURL = URL.createObjectURL(
         new Blob([data.wasm], { type: "application/wasm" }),
       );
@@ -436,7 +496,8 @@ $("run").onclick = () => {
   };
   current.postMessage({
     code: sourceToCompile,
-    input: $("input").value,
+    input: interactiveRun ? "" : $("input").value,
+    inputMode: $("input-mode").value,
     traceMode: $("cpp-trace").value,
     flow: mode === "flow",
     lineMap: compiledFlow?.lineMap,
@@ -459,8 +520,28 @@ $("prev").onclick = () => {
   --cursor;
   render();
 };
+function resumeStep() {
+  if (waiting?.reason === "step") {
+    const id = waiting.id;
+    waiting = null;
+    $("next").disabled = true;
+    timer = setTimeout(() => {
+      terminate();
+      partialTrace();
+      setStatus(
+        "Esecuzione interrotta dopo 5 secondi. Controlla eventuali cicli infiniti.",
+        true,
+      );
+    }, 5000);
+    worker?.postMessage({ type: "continue", id });
+  }
+}
 $("next").onclick = () => {
   pausePlayback();
+  if (cursor === states.length - 1 && waiting?.reason === "step") {
+    resumeStep();
+    return;
+  }
   ++cursor;
   render();
 };
@@ -616,6 +697,16 @@ $("cpp-trace").onchange = () => {
     $("cpp-trace").value === "automatic"
       ? "Tracciamento automatico: compila per osservare istruzioni e variabili."
       : "Tracciamento manuale: aggiungi OSSERVA(variabile) nei punti da osservare.",
+  );
+};
+$("input-mode").onchange = () => {
+  $("prepared-input").hidden = $("input-mode").value !== "prepared";
+  clearTrace();
+  saveDraft();
+  setStatus(
+    $("input-mode").value === "interactive"
+      ? "Il programma chiederà i valori quando raggiunge una lettura. Usa Avanti per procedere."
+      : "Inserisci tutti i dati prima di compilare.",
   );
 };
 setMode(

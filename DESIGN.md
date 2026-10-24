@@ -205,6 +205,19 @@ Selecting a skin updates the root data attribute without replacing the controls.
 
 ## Do's and Don'ts
 
+### Interactive input
+
+Input defaults to a live execution mode, with prepared input available in a native selector.
+An input request opens a centered native dialog with the destination name, type,
+program prompt, field, confirmation, EOF and stop controls. Enter confirms, Esc
+stops; invalid input leaves the dialog open and focuses the field. The dialog
+uses the active skin's panel, rule, ink and accent tokens.
+
+One brief value transfer connects the dialog field to the destination memory cell.
+The cell receives a static arrival highlight; reduced motion uses only that
+highlight. The timeline preserves previous states while the actual Worker stays
+suspended on the current step or read. Four skins share identical behavior.
+
 ### Do:
 - **Do** preserve code, input, diagram and compiled trace when changing presentation.
 - **Do** use the existing semantic color roles and the selected skin's overrides.

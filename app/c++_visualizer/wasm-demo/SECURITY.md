@@ -1,13 +1,13 @@
 # Modello di esecuzione
 
 Il sorgente è compilato nel browser in un Worker monouso. Il programma generato
-è WebAssembly/WASI: riceve solo stdin, stdout/stderr e quattro funzioni di osservazione.
+è WebAssembly/WASI: riceve solo stdin, stdout/stderr e gli hook di osservazione/input.
 Non riceve directory preaperte, accesso al filesystem del dispositivo, socket,
 DOM, storage del browser o credenziali. Output, nomi, diagnostica e sorgenti sono
 inseriti nell'interfaccia come testo.
 
 Limiti per esecuzione: 64 MiB di memoria lineare del programma, stack 1 MiB,
-512 MiB per ciascun modulo del compilatore/linker, 800 osservazioni, 8 MiB di
+512 MiB per ciascun modulo del compilatore/linker/trasformatore, 800 osservazioni, 8 MiB di
 traccia stimata, 20.000 byte di output, 10.000 byte di input UTF-8, 30.000 byte
 di sorgente manuale. Il generato dei flowchart ha limite 128 KiB prima della strumentazione e 256 KiB dopo;
 il sorgente originale resta limitato dal core. I limiti di memoria dei moduli
@@ -18,6 +18,14 @@ i limiti della memoria lineare non sono un tetto alla RAM totale del processo.
 Timeout di caricamento/compilazione 90 secondi e di esecuzione 5 secondi; Interrompi
 termina il Worker. I timer dipendono dalla pianificazione del browser, in
 particolare con schede in background. Il Worker viene ritirato a ogni prova.
+La modalità interattiva applica Asyncify al programma e riserva 256 KiB alla
+copia dello stack sospeso, entro la memoria del programma. Il budget di 5 secondi
+si riavvia a ogni ripresa; mentre l'utente sceglie un passo o un input il timer
+è fermo. Restano attivi i limiti complessivi di traccia, memoria e output.
+Ogni risposta è limitata a 4095 byte e l'input cumulativo a 10.000 byte UTF-8.
+Risposte con ID obsoleto e valori incompatibili con il tipo richiesto non
+fanno riprendere il programma. Le risposte interattive restano nel Worker e
+non vengono salvate nella bozza; l'input preparato conserva il salvataggio locale.
 
 Il confine JavaScript/WASM limita a 200 i nomi osservati e controlla i byte dei
 valori pendenti, anche se il programma chiama direttamente gli hook. Lo stato
@@ -26,7 +34,7 @@ al tracciamento automatico del C++ e ai flowchart; riceve una lunghezza esplicit
 puntatore prima della decodifica. I caratteri di controllo sono rappresentati
 con escape leggibili. I controlli non dipendono soltanto dalle classi C++ generate.
 
-I binari derivano dal pacchetto npm browsercc 0.1.1, con limite di memoria
+I binari derivano dai pacchetti npm browsercc 0.1.1 e Binaryen 132.0.0, con limite di memoria
 applicato durante la build. Il lockfile blocca le dipendenze e le relative
 integrità npm. Il manifest conserva hash upstream e hash degli asset effettivi;
 il loader verifica dimensione e SHA-256 degli asset binari prima di usarli.

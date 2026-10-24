@@ -29,7 +29,7 @@ async function load(page, body, extra = {}) {
 let serial = 0;
 const n = (kind, fields = {}) => ({ id: "new" + ++serial, kind, ...fields });
 test.beforeEach(async ({ page }) => {
-  await page.goto("/wasm-demo/");
+  await page.goto("/wasm-demo/?input=prepared");
   await page.locator("#cpp-trace").selectOption("manual");
 });
 

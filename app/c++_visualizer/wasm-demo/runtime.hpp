@@ -10,6 +10,19 @@ extern "C" __attribute__((import_module("env"), import_name("cv_trace"))) void _
 extern "C" __attribute__((import_module("env"), import_name("cv_text"))) void __cv_text(int,const char*,const char*,unsigned);
 extern "C" __attribute__((import_module("env"), import_name("cv_flow_reset"))) void __cv_flow_reset();
 extern "C" __attribute__((import_module("env"), import_name("cv_flow_commit"))) void __cv_flow_commit(int,int);
+#ifndef CV_INTERACTIVE
+#define CV_INTERACTIVE 0
+#endif
+#if CV_INTERACTIVE
+extern "C" __attribute__((import_module("env"), import_name("cv_input"))) void __cv_input(int,const char*,int,int,int);
+static std::uint32_t __cv_async_region[2];
+alignas(16) static unsigned char __cv_async_stack[262144];
+extern "C" __attribute__((export_name("cv_async_data"))) unsigned __cv_async_data() {
+  __cv_async_region[0]=reinterpret_cast<unsigned>(__cv_async_stack);
+  __cv_async_region[1]=reinterpret_cast<unsigned>(__cv_async_stack+sizeof(__cv_async_stack));
+  return reinterpret_cast<unsigned>(__cv_async_region);
+}
+#endif
 #define OSSERVA(x) ::__cv_trace(__LINE__, #x, static_cast<double>(x))
 namespace __cv_runtime {
 struct Entry {
@@ -17,6 +30,7 @@ struct Entry {
   virtual bool ready(const void*) const = 0;
   virtual void mark(const void*) = 0;
   virtual void emit() const = 0;
+  virtual std::string inputLabel(const void*) const = 0;
   virtual ~Entry() = default;
 };
 static Entry* entries[200];
@@ -64,6 +78,7 @@ template<class T> struct Watch : Entry {
   bool ready(const void* pointer) const override { return index(pointer)<length && initialized[index(pointer)]; }
   void mark(const void* pointer) override { if(index(pointer)<length) initialized[index(pointer)]=true; visible=true; }
   void check() const { if(!initialized[0]) ::__cv_flow_commit(0,-4); }
+  std::string inputLabel(const void* pointer) const override { return name+(std::is_array_v<T> ? "["+std::to_string(index(pointer))+"]" : ""); }
   template<class U> static void print(std::ostream& out,const U& value) {
     if constexpr (std::is_pointer_v<U>) out << static_cast<const void*>(value);
     else if constexpr (std::is_same_v<std::remove_cv_t<U>, char>) out << static_cast<int>(value);
@@ -99,13 +114,26 @@ template<bool Postfix,class T> decltype(auto) decrement(T& value) {
   if constexpr(Postfix) {auto old=value;--value;markAddress(&value);return old;}
   else {--value;markAddress(&value);return (value);}
 }
-template<class T> struct Destination { T& value; };
-template<class T> Destination<T> destination(T& value) {return {value};}
-template<class T> std::istream& operator>>(std::istream& input,Destination<T> to) {
-  if(input >> to.value) markAddress(&to.value);return input;
+inline void snapshot(int line,int result);
+template<class T> void askInput(T& value,int line,bool wholeLine=false) {
+#if CV_INTERACTIVE
+  std::cout.flush(); ::__cv_flow_reset();
+  for(unsigned i=0;i<count;++i) entries[i]->emit();
+  std::string label;
+  for(unsigned i=count;i>0;--i) if(entries[i-1]->contains(&value)) {label=entries[i-1]->inputLabel(&value);break;}
+  constexpr int kind=std::is_same_v<T,std::string> ? 4 : std::is_same_v<T,bool> ? 6 : (std::is_same_v<T,char> || std::is_same_v<T,signed char> || std::is_same_v<T,unsigned char>) ? 3 : std::is_floating_point_v<T> ? 2 : std::is_integral_v<T> ? 1 : 0;
+  ::__cv_input(line,label.c_str(),wholeLine?5:kind,sizeof(T)*8,std::is_signed_v<T>);
+#endif
 }
-template<class T> std::istream& readLine(std::istream& input,T& value) {
-  if(std::getline(input,value)) markAddress(&value);return input;
+template<class T> struct Destination { T& value; int line; };
+template<class T> Destination<T> destination(T& value,int line=0) {return {value,line};}
+template<class T> std::istream& operator>>(std::istream& input,Destination<T> to) {
+  if(&input==&std::cin) askInput(to.value,to.line);
+  if(input >> to.value) {markAddress(&to.value);if constexpr(CV_INTERACTIVE) snapshot(to.line,-1);}return input;
+}
+template<class T> std::istream& readLine(std::istream& input,T& value,int line=0) {
+  if(&input==&std::cin) askInput(value,line,true);
+  if(std::getline(input,value)) {markAddress(&value);if constexpr(CV_INTERACTIVE) snapshot(line,-1);}return input;
 }
 inline void requireInput() {if(!std::cin) {std::cout.flush();::__cv_flow_commit(0,-2);}}
 inline void snapshot(int line,int result=-1) {

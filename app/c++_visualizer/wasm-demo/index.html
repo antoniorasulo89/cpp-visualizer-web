@@ -16,7 +16,7 @@
     <script src="../flowchart-core.js" defer></script>
     <script src="../flowchart-editor.js" defer></script>
     <script src="flow-wasm.js" defer></script>
-    <script src="demo.js" defer></script>
+    <script src="demo.js" type="module"></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Vai al contenuto</a>
@@ -77,9 +77,10 @@
         <p>
           In C++ e nei flowchart i passi sono registrati automaticamente. Per
           codice avanzato puoi scegliere Manuale e inserire
-          <code>OSSERVA(variabile)</code> nei punti da osservare. Inserisci
-          l’input prima dell’avvio, compila e usa Indietro e Avanti per
-          esplorare i passi. Il sorgente rimane nel browser.
+          <code>OSSERVA(variabile)</code> nei punti da osservare. Con l’input
+          interattivo il programma chiede il valore quando serve. Puoi anche
+          preparare tutti i dati prima dell’avvio. Compila e usa Indietro e
+          Avanti per esplorare i passi. Il sorgente rimane nel browser.
         </p>
       </details>
       <div class="command-bar">
@@ -127,8 +128,9 @@
             <p id="cpp-hint" class="hint">
               Automatico: segui istruzioni, variabili e output senza aggiungere
               OSSERVA. Sono supportati i costrutti del sottoinsieme didattico.
-              Inserisci prima tutti i dati di cin, separati da spazi o a capo;
-              per i decimali usa il punto (esempio: 5 2.5).
+              Avanti esegue la prossima istruzione. Quando serve un dato compare
+              una richiesta al centro dello schermo; per i decimali usa il
+              punto.
             </p>
           </div>
           <div id="flow-pane" hidden></div>
@@ -137,14 +139,25 @@
             tipi stabili e variabili di subroutine. I diagrammi importati
             conservano gli ambiti C++.
           </p>
-          <label for="input">Input del programma (prima dell’avvio)</label
-          ><textarea
-            id="input"
-            rows="2"
-            spellcheck="false"
-            autocomplete="off"
-            placeholder="Esempio: 5 10…"
-          ></textarea>
+          <div class="playback-controls">
+            <label for="input-mode">Input del programma</label>
+            <select id="input-mode">
+              <option value="interactive" selected>
+                Chiedi durante l’esecuzione
+              </option>
+              <option value="prepared">Input preparato</option>
+            </select>
+          </div>
+          <div id="prepared-input" hidden>
+            <label for="input">Input del programma (prima dell’avvio)</label
+            ><textarea
+              id="input"
+              rows="2"
+              spellcheck="false"
+              autocomplete="off"
+              placeholder="Esempio: 5 10…"
+            ></textarea>
+          </div>
         </section>
         <section class="execution-panel" aria-label="Esecuzione del programma">
           <h2>Stato del programma</h2>
@@ -198,5 +211,30 @@
         <a href="README.md">Limiti e istruzioni</a>.
       </footer>
     </main>
+    <dialog
+      id="input-dialog"
+      aria-labelledby="input-question"
+      aria-describedby="input-type input-prompt"
+    >
+      <form novalidate>
+        <h2 id="input-question">Input del programma</h2>
+        <p id="input-prompt"></p>
+        <p id="input-type" class="hint"></p>
+        <label for="input-value">Valore da leggere</label>
+        <input
+          id="input-value"
+          type="text"
+          autocomplete="off"
+          spellcheck="false"
+          aria-describedby="input-error"
+        />
+        <p id="input-error" role="alert"></p>
+        <div class="toolbar">
+          <button type="submit">Conferma valore</button>
+          <button id="input-eof" type="button">Fine input</button>
+          <button id="input-cancel" type="button">Interrompi</button>
+        </div>
+      </form>
+    </dialog>
   </body>
 </html>

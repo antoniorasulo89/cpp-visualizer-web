@@ -55,7 +55,7 @@ function succeeded(result, output) {
   expect(result.flow.states.at(-1).output).toBe(output);
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto("/wasm-demo/");
+  await page.goto("/wasm-demo/?input=prepared");
   await page.locator("#cpp-trace").selectOption("manual");
 });
 

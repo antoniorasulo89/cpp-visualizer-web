@@ -27,7 +27,7 @@ async function end(page) {
   await page.keyboard.press("End");
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto("/wasm-demo/");
+  await page.goto("/wasm-demo/?input=prepared");
 });
 
 test("C++ senza OSSERVA: input, dichiarazioni multiple, valori e output a ogni istruzione", async ({

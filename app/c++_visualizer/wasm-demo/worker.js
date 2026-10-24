@@ -5,7 +5,20 @@ import { importFlow } from "./flow-import.js";
 import { instrumentFlow } from "./flow-instrument.js";
 import { TraceStore, visibleText } from "./trace-store.js";
 import { CPP_STANDARD, FLOW_CPP_COMPAT } from "./compiler-options.js";
+import { suspendable, SuspendedExecution } from "./asyncify.js";
+import { InteractiveChannel } from "./interactive.js";
+let channel;
 self.onmessage = async ({ data }) => {
+  if (data.type === "continue" || data.type === "input") {
+    channel?.receive(data);
+    return;
+  }
+  if (channel) return;
+  const interactive = data.inputMode === "interactive";
+  channel = interactive
+    ? new InteractiveChannel((message) => self.postMessage(message))
+    : null;
+  const execution = interactive ? new SuspendedExecution() : null;
   const automatic = data.flow || data.traceMode === "automatic";
   let phase = "loading",
     log = "",
@@ -15,7 +28,8 @@ self.onmessage = async ({ data }) => {
   const trace = new TraceStore(),
     { states, values } = trace,
     started = performance.now();
-  let instance;
+  let instance, inputSpec;
+  let inputOutputOffset = 0;
   const status = (text) => self.postMessage({ type: "status", phase, text });
   function record(state) {
     trace.record(state);
@@ -51,6 +65,11 @@ self.onmessage = async ({ data }) => {
     );
   }
   try {
+    if (
+      data.inputMode !== undefined &&
+      !["interactive", "prepared"].includes(data.inputMode)
+    )
+      throw Error("Modalità di input non valida.");
     if (
       typeof data.code !== "string" ||
       new TextEncoder().encode(data.code).length > (data.flow ? 131072 : 30000)
@@ -122,6 +141,7 @@ self.onmessage = async ({ data }) => {
       fileName: "programma.cpp",
       flags: [
         `-std=${CPP_STANDARD}`,
+        `-DCV_INTERACTIVE=${interactive ? 1 : 0}`,
         "-O0",
         "-fno-exceptions",
         "-fno-color-diagnostics",
@@ -133,7 +153,7 @@ self.onmessage = async ({ data }) => {
       extraFiles: {
         "/runtime.hpp": runtime,
         "/imports.txt":
-          "__cv_trace\n__cv_text\n__cv_flow_reset\n__cv_flow_commit\n",
+          "__cv_trace\n__cv_text\n__cv_flow_reset\n__cv_flow_commit\n__cv_input\n",
       },
     });
     log = result.compileOutput;
@@ -141,11 +161,17 @@ self.onmessage = async ({ data }) => {
       throw Error(
         "Compilazione non riuscita. Correggi il blocco o la riga indicati.",
       );
+    if (interactive) {
+      status("Preparazione delle pause interattive…");
+      result.bytes = await suspendable(result.bytes);
+      result.module = await WebAssembly.compile(result.bytes);
+    }
     const allowed = new Set([
       "cv_trace",
       "cv_text",
       "cv_flow_reset",
       "cv_flow_commit",
+      "cv_input",
     ]);
     for (const item of WebAssembly.Module.imports(result.module))
       if (
@@ -180,51 +206,109 @@ self.onmessage = async ({ data }) => {
         stream(),
       ],
     );
+    const env = {
+      cv_trace(line, pointer, value) {
+        const name = nameAt(pointer);
+        trace.set(name, Number.isFinite(value) ? value : String(value));
+        if (!automatic) record({ line, name, values: { ...values }, output });
+      },
+      cv_text(line, pointer, textPointer, length) {
+        if (!automatic)
+          throw Error(
+            "Osservazioni testuali riservate al tracciamento automatico.",
+          );
+        trace.set(nameAt(pointer), textAt(textPointer, length));
+      },
+      cv_flow_reset() {
+        trace.reset();
+      },
+      cv_flow_commit(line, result) {
+        inputSpec = null;
+        if (line > 0) lastLine = line;
+        if (result === -2)
+          throw Error(
+            "Input esaurito o non valido: completa i dati e riesegui.",
+          );
+        if (result === -3)
+          throw Error("Superato il limite di 200 variabili attive.");
+        if (result === -4)
+          throw Error(
+            "Lettura di una variabile o cella prima dell’inizializzazione. Controlla i rami percorsi.",
+          );
+        if (result === -5)
+          throw Error("Superato il limite di 128 chiamate annidate.");
+        if (result === -6)
+          throw Error("Array: massimo 100 elementi osservabili.");
+        record({
+          line,
+          name: null,
+          values: { ...values },
+          output,
+          result: result < 0 ? null : !!result,
+        });
+        if (interactive) return channel.step();
+      },
+      cv_input(line, pointer, kind, bits, signed) {
+        if (!interactive || channel.eof) return 0;
+        const name = nameAt(pointer);
+        if (
+          !Number.isInteger(kind) ||
+          kind < 0 ||
+          kind > 6 ||
+          (kind === 1 && ![8, 16, 32, 64].includes(bits))
+        )
+          throw Error("Tipo di input non valido.");
+        if (line > 0) lastLine = line;
+        record({
+          line: line || lastLine,
+          name: null,
+          values: { ...values },
+          output,
+          awaitingInput: true,
+        });
+        inputSpec = {
+          name,
+          line: line || lastLine,
+          kind,
+          bits,
+          signed: !!signed,
+          prompt: output.slice(inputOutputOffset).slice(-500),
+        };
+        inputOutputOffset = output.length;
+        return 0;
+      },
+    };
+    if (interactive) {
+      env.cv_flow_commit = execution.wrap(env.cv_flow_commit);
+      env.cv_input = execution.wrap(env.cv_input);
+      const originalRead = wasi.wasiImport.fd_read;
+      wasi.wasiImport.fd_read = execution.wrap(
+        (fd, iovs, count, readPointer) =>
+          fd === 0
+            ? channel.read(
+                instance,
+                iovs,
+                count,
+                readPointer,
+                inputSpec || {
+                  name: "",
+                  line: lastLine,
+                  kind: 0,
+                  bits: 0,
+                  signed: false,
+                  prompt: output.slice(-500),
+                },
+              )
+            : originalRead(fd, iovs, count, readPointer),
+      );
+    }
     instance = await WebAssembly.instantiate(result.module, {
       wasi_snapshot_preview1: wasi.wasiImport,
-      env: {
-        cv_trace(line, pointer, value) {
-          const name = nameAt(pointer);
-          trace.set(name, Number.isFinite(value) ? value : String(value));
-          if (!automatic) record({ line, name, values: { ...values }, output });
-        },
-        cv_text(line, pointer, textPointer, length) {
-          if (!automatic)
-            throw Error(
-              "Osservazioni testuali riservate al tracciamento automatico.",
-            );
-          trace.set(nameAt(pointer), textAt(textPointer, length));
-        },
-        cv_flow_reset() {
-          trace.reset();
-        },
-        cv_flow_commit(line, result) {
-          if (line > 0) lastLine = line;
-          if (result === -2)
-            throw Error(
-              "Input esaurito o non valido: completa i dati e riesegui.",
-            );
-          if (result === -3)
-            throw Error("Superato il limite di 200 variabili attive.");
-          if (result === -4)
-            throw Error(
-              "Lettura di una variabile o cella prima dell’inizializzazione. Controlla i rami percorsi.",
-            );
-          if (result === -5)
-            throw Error("Superato il limite di 128 chiamate annidate.");
-          if (result === -6)
-            throw Error("Array: massimo 100 elementi osservabili.");
-          record({
-            line,
-            name: null,
-            values: { ...values },
-            output,
-            result: result < 0 ? null : !!result,
-          });
-        },
-      },
+      env,
     });
-    const code = wasi.start(instance);
+    const code = interactive
+      ? await execution.run(instance, () => wasi.start(instance))
+      : wasi.start(instance);
     if (code !== 0) throw Error(`Il programma è terminato con codice ${code}.`);
     record({
       line: null,
@@ -255,5 +339,7 @@ self.onmessage = async ({ data }) => {
       output,
       line: lastLine,
     });
+  } finally {
+    channel = null;
   }
 };

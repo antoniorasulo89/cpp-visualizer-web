@@ -13,6 +13,7 @@ Applicazione statica HTML/CSS/JavaScript, compilatore C++ Clang/LLD WebAssembly 
 ## Evidence on Hand
 Implementazione e test in app/c++_visualizer/wasm-demo; prototipo pubblico locale su porta 8768.
 ## Product Principles
+- Sospendere realmente le letture e rendere visibile il passaggio del dato alla variabile; offrire anche input preparato.
 - Rendere leggibile il rapporto tra istruzione e cambiamento dei valori.
 - Tenere i comandi di esecuzione raggiungibili durante il lavoro.
 - Dare priorità ai compiti didattici rispetto alla descrizione del motore.

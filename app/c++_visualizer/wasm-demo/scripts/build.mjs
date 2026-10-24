@@ -12,6 +12,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { build } from "esbuild";
 import { boundMemory } from "./wasm-limits.mjs";
+import { runInNewContext } from "node:vm";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const vendor = path.join(root, "toolchain");
 async function resetGenerated(name) {
@@ -26,7 +27,68 @@ async function resetGenerated(name) {
 }
 await resetGenerated("toolchain");
 const packageRoot = path.join(root, "node_modules/browsercc");
-const manifest = { version: "browsercc-0.1.1", files: {} };
+const manifest = { version: "browsercc-0.1.1", binaryen: "132.0.0", files: {} };
+// Extract Binaryen's embedded literal into the same verified, bounded asset
+// pipeline as Clang. Never ship its unused Node CLI tools or a second binary.
+let binaryenJS = await readFile(
+  path.join(root, "node_modules/binaryen/index.js"),
+  "utf8",
+);
+const embeddedStart = binaryenJS.indexOf("bA??=x6(`");
+let embeddedEnd = embeddedStart + 9;
+for (; embeddedEnd < binaryenJS.length; embeddedEnd++) {
+  if (binaryenJS[embeddedEnd] === "\\") {
+    embeddedEnd++;
+    continue;
+  }
+  if (binaryenJS[embeddedEnd] === "`") break;
+}
+if (
+  embeddedStart < 0 ||
+  binaryenJS[embeddedEnd + 1] !== ")" ||
+  !binaryenJS.includes("async function N6(r){return r}")
+)
+  throw Error(
+    "Formato Binaryen cambiato: verificare il loader prima della build.",
+  );
+const literal = runInNewContext(
+  binaryenJS.slice(embeddedStart + 8, embeddedEnd + 1),
+  Object.create(null),
+  { timeout: 3000 },
+);
+const originalBinaryen = Uint8Array.from({ length: literal.length }, (_, i) => {
+  const code = literal.charCodeAt(i);
+  return (~code >> 8) & code;
+});
+const boundedBinaryen = Buffer.from(boundMemory(originalBinaryen, 8192).bytes);
+const binaryenGzip = gzipSync(boundedBinaryen, { level: 9 });
+await writeFile(path.join(vendor, "binaryen.wasm"), boundedBinaryen);
+await writeFile(path.join(vendor, "binaryen.wasm.gz"), binaryenGzip);
+manifest.files["binaryen.wasm"] = {
+  size: boundedBinaryen.length,
+  gzipSize: binaryenGzip.length,
+  sha256: createHash("sha256").update(boundedBinaryen).digest("hex"),
+  upstreamSha256: createHash("sha256").update(originalBinaryen).digest("hex"),
+};
+binaryenJS =
+  binaryenJS.slice(0, embeddedStart) +
+  "bA??=new Uint8Array()" +
+  binaryenJS.slice(embeddedEnd + 2);
+binaryenJS =
+  'import {loadAsset} from "../assets.js";\n' +
+  binaryenJS.replace(
+    "async function N6(r){return r}",
+    'async function N6(){return await loadAsset("binaryen.wasm")}',
+  );
+await writeFile(path.join(vendor, "binaryen.js"), binaryenJS);
+manifest.files["binaryen.js"] = {
+  size: Buffer.byteLength(binaryenJS),
+  sha256: createHash("sha256").update(binaryenJS).digest("hex"),
+};
+await copyFile(
+  path.join(root, "node_modules/binaryen/LICENSE"),
+  path.join(vendor, "LICENSE.binaryen"),
+);
 for (const name of [
   "clang.js",
   "lld.js",
@@ -120,6 +182,10 @@ const own = [
   "skins.css",
   "skins.js",
   "worker.js",
+  "asyncify.js",
+  "interactive.js",
+  "input-values.js",
+  "input-dialog.js",
   "flow-wasm.js",
   "clang-ast.js",
   "compiler-options.js",
@@ -168,6 +234,7 @@ const core = own.concat([
   "toolchain/clang.js",
   "toolchain/lld.js",
   "toolchain/wasi.js",
+  "toolchain/binaryen.js",
   "../flowchart-core.js",
   "../flowchart-editor.js",
   "../flowchart.css",

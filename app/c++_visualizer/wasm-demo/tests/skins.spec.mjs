@@ -8,7 +8,7 @@ const key = "dentro-il-codice-skin-v1:/wasm-demo/";
 test("skin persistente senza perdere programma, input o traccia", async ({
   page,
 }) => {
-  await page.goto("/wasm-demo/");
+  await page.goto("/wasm-demo/?input=prepared");
   await page.locator("#input").fill("5 10");
   const code = await page.locator("#code").inputValue();
   await page.locator("#run").click();
@@ -38,7 +38,7 @@ test("skin persistente senza perdere programma, input o traccia", async ({
 test("tutte le skin: accessibilità, larghezze mobili e modifica del diagramma", async ({
   page,
 }, info) => {
-  await page.goto("/wasm-demo/?mode=flow");
+  await page.goto("/wasm-demo/?mode=flow&input=prepared");
   const axe = await readFile(
     new URL("../node_modules/axe-core/axe.min.js", import.meta.url),
     "utf8",
@@ -96,7 +96,7 @@ test("preferenza sconosciuta o storage bloccato: selettore utilizzabile", async 
     (storageKey) => localStorage.setItem(storageKey, "__proto__"),
     key,
   );
-  await page.goto("/wasm-demo/");
+  await page.goto("/wasm-demo/?input=prepared");
   await expect(page.locator("html")).toHaveAttribute(
     "data-skin",
     "laboratorio",

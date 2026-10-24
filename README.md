@@ -15,11 +15,13 @@ l'esecuzione direttamente nel browser con Clang WebAssembly/WASI.
 - Importazione C++ → Flowchart tramite AST di Clang, subroutine, input/output,
   condizioni, cicli, array, stringhe, puntatori e riferimenti nel sottoinsieme supportato.
 - Esecuzione per passi, riproduzione a velocità variabile e osservazioni delle variabili.
+- Input interattivo in C++ e nei flowchart: pausa reale, riquadro centrale e
+  animazione del dato verso la variabile. Input preparato ancora disponibile.
 - Quattro skin selezionabili: Laboratorio, Mappa, Segnali e Classica.
 - Bozze locali, import/export JSON, download C++/WebAssembly ed esportazione PNG.
 - Uso offline dopo il primo caricamento completo della toolchain.
 
-La prima compilazione scarica circa 29,7 MB compressi di toolchain. Le bozze
+La prima compilazione interattiva scarica circa 32,0 MB compressi di toolchain. Le bozze
 rimangono nel browser: esportare il lavoro importante. Il C++ e i flowchart hanno
 tracciamento automatico nel sottoinsieme didattico. Per codice avanzato è
 disponibile **Manuale (OSSERVA)**, con osservazioni numeriche esplicite.
@@ -40,8 +42,8 @@ npm run serve
 ```
 
 Aprire `http://127.0.0.1:8768/wasm-demo/`. La cartella `release/` generata contiene
-il sito statico completo. La suite della versione 1.2.0 comprende 117 esecuzioni
-browser e 6 test unitari; copre anche le regressioni dei nove difetti dell'audit.
+il sito statico completo. La suite copre i tre browser, l'input interattivo e
+le regressioni dei nove difetti dell'audit; comprende anche 8 test unitari.
 
 ## Pubblicazione
 
