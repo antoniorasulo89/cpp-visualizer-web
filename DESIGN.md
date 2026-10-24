@@ -213,7 +213,12 @@ program prompt, field, confirmation, EOF and stop controls. Enter confirms, Esc
 stops; invalid input leaves the dialog open and focuses the field. The dialog
 uses the active skin's panel, rule, ink and accent tokens.
 
-One brief value transfer connects the dialog field to the destination memory cell.
+An accent-filled badge with the variable name and a large value connects the
+dialog field to the destination memory cell over 850 ms. The destination value
+appears on arrival, with a 240 ms landing accent. Autoplay remembers its intent
+across input requests and resumes after this transfer; an explicit pause cancels
+that intent. Console history includes the typed input and Enter's newline while
+keeping the program's stdout separate.
 The cell receives a static arrival highlight; reduced motion uses only that
 highlight. The timeline preserves previous states while the actual Worker stays
 suspended on the current step or read. Four skins share identical behavior.

@@ -1,10 +1,14 @@
-# Dentro il codice — versione web 1.3.0
+# Dentro il codice — versione web 1.3.1
 
 Compilazione C++23, esecuzione WebAssembly/WASI e visualizzazione delle variabili
 direttamente nel browser. Nessun sorgente o input viene inviato a servizi di
 compilazione. Il sito pubblicato richiede soltanto file statici su HTTPS.
 
-La versione 1.3.0 aggiunge l'input interattivo in C++ e nei flowchart: il motore
+La versione 1.3.1 mostra nella console l'eco dell'input con l'a capo di Invio.
+Se Riproduci era attivo, riprende automaticamente dopo il trasferimento del
+valore, ora più visibile. Pausa e Interrompi annullano la ripresa prevista.
+
+La versione 1.3.0 ha aggiunto l'input interattivo in C++ e nei flowchart: il motore
 si sospende davvero e chiede un valore al momento della lettura. Dopo la conferma
 il valore raggiunge la cella della variabile con un'animazione breve, oppure con
 un'evidenziazione se il dispositivo richiede movimento ridotto. Lo stack viene
@@ -94,14 +98,17 @@ include CSP/nosniff; una CSP in meta è presente anche nel documento HTML.
   **Interrompi** o Esc terminano l'esecuzione conservando i passi già prodotti.
   Le attese dell'utente non consumano il timeout di esecuzione. Numeri reali:
   usare il punto decimale; ogni risposta è una riga terminata da un a capo.
-  **Riproduci** procede alla velocità scelta e si ferma quando serve un input;
-  dopo la risposta riprendere con **Avanti** o **Riproduci**.
+  **Riproduci** procede alla velocità scelta e attende quando serve un input;
+  dopo la risposta e il trasferimento del valore riprende automaticamente.
+  Se si procedeva con **Avanti**, l'esecuzione rimane invece per passi.
 - **Avanti/Indietro** e cursore navigano anche fotografie già registrate. Il blocco attivo,
   gli esiti Vero/Falso e la console seguono il passo. Le condizioni vengono
   valutate una sola volta, anche quando contengono un incremento.
 - Selezionare **Input preparato** per inserire tutti i dati prima dell'avvio e
   registrare l'intera esecuzione senza pause. L'input e l'output sono
-  UTF-8; la console non è un terminale interattivo e non aggiunge l'eco dell'input.
+  UTF-8. In modalità interattiva la console mostra il dato digitato e l'a capo
+  di Invio, separatamente dall'output reale del programma; nell'input preparato
+  mostra soltanto l'output del programma.
   Ad esempio, per leggere un intero e un reale inserire `5 2.5` nel campo Input:
   i numeri possono essere separati da spazi o a capo; usare il punto decimale.
 - **Interrompi** termina il Worker. Le fotografie e l'output già ricevuti vengono

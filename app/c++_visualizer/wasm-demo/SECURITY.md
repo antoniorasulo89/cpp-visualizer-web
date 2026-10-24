@@ -24,8 +24,8 @@ si riavvia a ogni ripresa; mentre l'utente sceglie un passo o un input il timer
 è fermo. Restano attivi i limiti complessivi di traccia, memoria e output.
 Ogni risposta è limitata a 4095 byte e l'input cumulativo a 10.000 byte UTF-8.
 Risposte con ID obsoleto e valori incompatibili con il tipo richiesto non
-fanno riprendere il programma. Le risposte interattive restano nel Worker e
-non vengono salvate nella bozza; l'input preparato conserva il salvataggio locale.
+fanno riprendere il programma. Le risposte interattive compaiono nella traccia
+in memoria e non vengono salvate nella bozza; l'input preparato conserva il salvataggio locale.
 
 Il confine JavaScript/WASM limita a 200 i nomi osservati e controlla i byte dei
 valori pendenti, anche se il programma chiama direttamente gli hook. Lo stato

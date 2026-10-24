@@ -9,6 +9,7 @@ export class InputDialog {
     this.stop = stop;
     this.request = null;
     this.flight = null;
+    this.settled = Promise.resolve();
     this.dialog.querySelector("form").addEventListener("submit", (e) => {
       e.preventDefault();
       if (!this.request || this.field.readOnly) return;
@@ -111,8 +112,12 @@ export class InputDialog {
     }
     const value = document.createElement("span");
     value.className = "input-flight";
-    value.textContent =
+    const label = document.createElement("small"),
+      number = document.createElement("strong");
+    label.textContent = flight.name;
+    number.textContent =
       flight.value.length > 40 ? flight.value.slice(0, 37) + "…" : flight.value;
+    value.append(label, number);
     value.setAttribute("aria-hidden", "true");
     document.body.append(value);
     const to = target.getBoundingClientRect(),
@@ -123,20 +128,44 @@ export class InputDialog {
       [
         { transform: "translate(-50%,-50%) scale(1)", opacity: 1 },
         {
+          transform: "translate(-50%,-50%) scale(1.08)",
+          opacity: 1,
+          offset: 0.2,
+        },
+        {
           transform: `translate(calc(-50% + ${to.left + to.width / 2 - from.left - from.width / 2}px),calc(-50% + ${to.top + to.height / 2 - from.top - from.height / 2}px)) scale(.85)`,
-          opacity: 0.9,
+          opacity: 1,
         },
       ],
-      { duration: 480, easing: "cubic-bezier(0.16,1,0.3,1)" },
+      { duration: 850, easing: "cubic-bezier(0.4,0,0.2,1)" },
     );
+    target.classList.add("input-receiving");
     this.animation = animation;
-    animation.finished
-      .then(arrival)
+    const settled = animation.finished
+      .then(async () => {
+        value.remove();
+        target.classList.remove("input-receiving");
+        arrival();
+        const cell = this.target(flight.name);
+        if (!cell) return;
+        const landing = cell.animate(
+          [
+            { transform: "scale(1)" },
+            { transform: "scale(1.12)", offset: 0.4 },
+            { transform: "scale(1)" },
+          ],
+          { duration: 240, easing: "cubic-bezier(0.16,1,0.3,1)" },
+        );
+        this.animation = landing;
+        await landing.finished;
+      })
       .catch(() => {})
       .finally(() => {
         value.remove();
-        this.animation = null;
+        target.classList.remove("input-receiving");
+        if (this.settled === settled) this.animation = null;
       });
+    this.settled = settled;
   }
   close() {
     this.animation?.cancel();

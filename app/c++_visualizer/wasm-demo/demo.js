@@ -25,9 +25,11 @@ let mode = "cpp",
   compiledFlow = null;
 let liveStates = [],
   liveOutput = "",
+  liveConsole = "",
   draftSafe = true,
   saveTimer;
 let playbackTimer = null,
+  resumeAfterInput = false,
   importing = false;
 let waiting = null,
   inputDialog = null;
@@ -38,16 +40,21 @@ try {
   if (["0.5", "1", "2", "4", "8"].includes(speed)) $("speed").value = speed;
 } catch {}
 function pausePlayback() {
+  resumeAfterInput = false;
   clearInterval(playbackTimer);
   playbackTimer = null;
   $("play").textContent = "Riproduci";
   $("play").setAttribute("aria-pressed", "false");
+  if (worker && waiting?.reason === "step")
+    setStatus("Esecuzione in pausa. Avanti esegue la prossima istruzione.");
 }
 function startPlayback() {
   if (!states.length) return;
   if (!worker && cursor >= states.length - 1) cursor = 0;
   $("play").textContent = "Pausa";
   $("play").setAttribute("aria-pressed", "true");
+  if (worker)
+    setStatus("Riproduzione in corso. Usa Pausa per fermare i passi.");
   playbackTimer = setInterval(
     () => {
       if (cursor >= states.length - 1) {
@@ -62,7 +69,8 @@ function startPlayback() {
     1000 / Number($("speed").value),
   );
 }
-$("play").onclick = () => (playbackTimer ? pausePlayback() : startPlayback());
+$("play").onclick = () =>
+  playbackTimer || resumeAfterInput ? pausePlayback() : startPlayback();
 $("speed").onchange = () => {
   try {
     localStorage.setItem(SPEED_KEY, $("speed").value);
@@ -180,6 +188,7 @@ function partialTrace(output = liveOutput) {
       name: null,
       values: { ...last?.values },
       output,
+      consoleOutput: liveConsole,
       partial: true,
     });
   cursor = Math.max(0, states.length - 1);
@@ -301,7 +310,7 @@ function render() {
     }
     $("memory").append(cell);
   }
-  $("console").textContent = state?.output || "—";
+  $("console").textContent = (state?.consoleOutput ?? state?.output) || "—";
   $("source").replaceChildren();
   if (state) {
     const lines = compiledSource.split("\n");
@@ -337,6 +346,7 @@ $("run").onclick = () => {
   clearTrace();
   liveStates = [];
   liveOutput = "";
+  liveConsole = "";
   $("diagnostics").textContent = "—";
   $("diagnostics").parentElement.open = false;
   saveDraft();
@@ -422,17 +432,40 @@ $("run").onclick = () => {
       }
     } else if (data.type === "output") {
       liveOutput += data.chunk;
+      liveConsole += data.chunk;
     } else if (data.type === "paused") {
       clearTimeout(timer);
       waiting = data;
       if (data.reason === "step") {
         $("next").disabled = false;
-        setStatus("Esecuzione in pausa. Avanti esegue la prossima istruzione.");
+        setStatus(
+          resumeAfterInput
+            ? "Trasferimento del valore; poi l’esecuzione riprende automaticamente."
+            : playbackTimer
+              ? "Riproduzione in corso. Usa Pausa per fermare i passi."
+              : "Esecuzione in pausa. Avanti esegue la prossima istruzione.",
+        );
         $("play").disabled = false;
+        if (resumeAfterInput) {
+          $("play").textContent = "Pausa";
+          $("play").setAttribute("aria-pressed", "true");
+          await inputDialog?.settled;
+          if (
+            worker === current &&
+            waiting?.id === data.id &&
+            resumeAfterInput
+          ) {
+            resumeAfterInput = false;
+            startPlayback();
+          }
+          return;
+        }
         if (!playbackTimer && cursor === states.length - 1)
           $("next").focus({ preventScroll: true });
       } else {
+        const wasPlaying = !!playbackTimer;
         pausePlayback();
+        resumeAfterInput = wasPlaying;
         $("play").disabled = true;
         setStatus(
           data.name
@@ -451,6 +484,7 @@ $("run").onclick = () => {
     } else if (data.type === "input-accepted") {
       if (waiting?.id !== data.id) return;
       inputDialog?.accepted(data);
+      liveConsole = data.consoleOutput;
       waiting = null;
       armTimeout(
         5000,
@@ -473,6 +507,8 @@ $("run").onclick = () => {
     } else if (data.type === "error") {
       if (data.states) liveStates = data.states;
       if (typeof data.output === "string") liveOutput = data.output;
+      if (typeof data.consoleOutput === "string")
+        liveConsole = data.consoleOutput;
       terminate();
       partialTrace();
       $("diagnostics").textContent = diagnostics(

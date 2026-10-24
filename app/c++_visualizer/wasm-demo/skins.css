@@ -179,6 +179,7 @@ summary {
 }
 #input-dialog h2 {
   margin: 0 0 var(--space-md);
+  overflow-wrap: anywhere;
 }
 #input-prompt {
   white-space: pre-wrap;
@@ -212,19 +213,29 @@ summary {
 .input-arrived {
   background: var(--color-selected);
   border-color: var(--color-accent);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+.input-receiving strong {
+  visibility: hidden;
 }
 .input-flight {
   position: fixed;
   z-index: 1000;
   pointer-events: none;
-  padding: var(--space-xs) var(--space-sm);
-  background: var(--color-selected);
-  color: var(--color-ink);
+  display: grid;
+  gap: 4px;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
   border: 1px solid var(--color-accent);
   border-radius: 4px;
-  font: 24px var(--font-code);
+  font: 32px var(--font-code);
   max-width: 70vw;
   overflow-wrap: anywhere;
+}
+.input-flight small {
+  font: 14px var(--font-code);
 }
 button {
   padding: var(--space-xs) var(--space-sm);

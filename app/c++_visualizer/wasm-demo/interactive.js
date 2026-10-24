@@ -63,6 +63,7 @@ export class InteractiveChannel {
         type: "input-accepted",
         id: waiting.id,
         eof: message.eof === true,
+        value: message.eof === true ? "" : message.value,
       });
     this.pending = null;
     waiting.resolve(0);

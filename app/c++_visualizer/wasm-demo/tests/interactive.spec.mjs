@@ -65,12 +65,12 @@ test("C++: pausa reale, nessuna riesecuzione, input concatenati e trasferimento"
     1,
   );
   await until(page, "done");
-  await expect(page.locator("#console")).toHaveText("1?1 6 5");
+  await expect(page.locator("#console")).toHaveText("1?5\n2.5\n1 6 5");
   await expect(page.locator("#status")).toContainText("Compilato ed eseguito");
   await page.locator("#timeline").focus();
   await page.keyboard.press("Home");
   await page.keyboard.press("End");
-  await expect(page.locator("#console")).toHaveText("1?1 6 5");
+  await expect(page.locator("#console")).toHaveText("1?5\n2.5\n1 6 5");
   await expect(page.locator("#input-dialog")).not.toBeVisible();
 });
 
@@ -134,7 +134,9 @@ test("array, getline UTF-8 e newline conservano la semantica C++", async ({
   await expect(page.locator("#input-question")).toHaveText("Valore per nome");
   await answer(page, "città con spazi");
   await until(page, "done");
-  await expect(page.locator("#console")).toHaveText("7::città con spazi");
+  await expect(page.locator("#console")).toHaveText(
+    "7\ncittà con spazi\n7::città con spazi",
+  );
 });
 
 test("EOF in una condizione termina il ciclo senza chiedere un altro dato", async ({
@@ -150,7 +152,7 @@ test("EOF in una condizione termina il ciclo senza chiedere un altro dato", asyn
   await page.locator("#input-eof").click();
   await expect(page.locator("#input-dialog")).not.toBeVisible();
   await until(page, "done");
-  await expect(page.locator("#console")).toHaveText("9");
+  await expect(page.locator("#console")).toHaveText("9\n9");
   await expect(page.locator("#status")).toContainText("Compilato ed eseguito");
 });
 
@@ -168,7 +170,7 @@ test("input in subroutine: stack e variabile passata per riferimento restano coe
     page.locator('[data-variable="leggi#1 · v"].input-arrived'),
   ).toHaveCount(1);
   await until(page, "done");
-  await expect(page.locator("#console")).toHaveText("9");
+  await expect(page.locator("#console")).toHaveText("8\n9");
   await expect(page.locator('[data-variable="x"]')).toContainText("8");
   await expect(page.locator('[data-variable="leggi#1 · v"]')).toHaveCount(0);
 });
@@ -190,7 +192,7 @@ test("Esc interrompe, conserva la traccia e permette un nuovo avvio", async ({
   await until(page, "input");
   await answer(page, "2");
   await until(page, "done");
-  await expect(page.locator("#console")).toHaveText("prontodopo");
+  await expect(page.locator("#console")).toHaveText("pronto2\ndopo");
 });
 
 test("movimento ridotto: evidenziazione immediata, senza valore volante", async ({
@@ -210,7 +212,7 @@ test("movimento ridotto: evidenziazione immediata, senza valore volante", async 
   await until(page, "done");
 });
 
-test("Riproduci esegue i passi e si ferma sull'input, poi riprende su comando", async ({
+test("Riproduci esegue i passi e si ferma sull'input, poi riprende automaticamente", async ({
   page,
 }) => {
   await start(
@@ -224,10 +226,11 @@ test("Riproduci esegue i passi e si ferma sull'input, poi riprende su comando", 
   await expect(page.locator("#play")).toHaveAttribute("aria-pressed", "false");
   await expect(page.locator("#console")).not.toContainText("7");
   await answer(page, "4");
-  await expect(page.locator("#play")).toHaveAttribute("aria-pressed", "false");
-  await page.locator("#play").click();
+  await expect(page.locator(".input-flight")).toBeVisible();
+  await expect(page.locator("#play")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#run")).toBeDisabled();
   await expect(page.locator("#run")).toBeEnabled();
-  await expect(page.locator("#console")).toHaveText("7");
+  await expect(page.locator("#console")).toHaveText("4\n7");
 });
 
 test("input preparato resta disponibile e la scelta viene salvata", async ({
@@ -270,7 +273,7 @@ test("modalità manuale: stdin si sospende anche senza metadati automatici", asy
   await page.locator("#input-value").fill("8");
   await page.locator("#input-dialog [type=submit]").click();
   await expect(page.locator("#run")).toBeEnabled({ timeout: 95000 });
-  await expect(page.locator("#console")).toHaveText("dato?8");
+  await expect(page.locator("#console")).toHaveText("dato?8\n8");
   await expect(page.locator('[data-variable="x"]')).toContainText("8");
 });
 
@@ -306,7 +309,7 @@ test("motore interattivo disponibile offline dopo il primo utilizzo", async ({
     await until(page, "input");
     await answer(page, "6");
     await until(page, "done");
-    await expect(page.locator("#console")).toHaveText("6");
+    await expect(page.locator("#console")).toHaveText("6\n6");
   } finally {
     await context.setOffline(false);
   }

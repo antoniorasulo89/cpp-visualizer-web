@@ -15,8 +15,15 @@ self.onmessage = async ({ data }) => {
   }
   if (channel) return;
   const interactive = data.inputMode === "interactive";
+  let consoleOutput = "";
   channel = interactive
-    ? new InteractiveChannel((message) => self.postMessage(message))
+    ? new InteractiveChannel((message) => {
+        if (message.type === "input-accepted") {
+          if (!message.eof) consoleOutput += message.value + "\n";
+          message.consoleOutput = consoleOutput;
+        }
+        self.postMessage(message);
+      })
     : null;
   const execution = interactive ? new SuspendedExecution() : null;
   const automatic = data.flow || data.traceMode === "automatic";
@@ -32,6 +39,7 @@ self.onmessage = async ({ data }) => {
   let inputOutputOffset = 0;
   const status = (text) => self.postMessage({ type: "status", phase, text });
   function record(state) {
+    if (interactive) state.consoleOutput = consoleOutput;
     trace.record(state);
     if (!state.final) {
       lastLine = state.line;
@@ -192,6 +200,7 @@ self.onmessage = async ({ data }) => {
         outputBytes += chunk.length;
         const text = decoder.decode(chunk, { stream: true });
         output += text;
+        consoleOutput += text;
         self.postMessage({ type: "output", chunk: text });
       });
     };
@@ -338,6 +347,7 @@ self.onmessage = async ({ data }) => {
       states,
       output,
       line: lastLine,
+      consoleOutput,
     });
   } finally {
     channel = null;
