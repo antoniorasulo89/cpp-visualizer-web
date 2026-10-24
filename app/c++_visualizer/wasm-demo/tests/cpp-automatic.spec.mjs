@@ -95,6 +95,21 @@ test("input mancante e lettura non inizializzata conservano sorgente e passi gi�
   await expect(page.locator("#status")).toContainText(
     "prima dell’inizializzazione",
   );
+  await run(
+    page,
+    '#include <iostream>\nint main(){int x;bool ok=static_cast<bool>(std::cin>>x);if(ok)std::cout<<x;else std::cout<<"eof";}',
+  );
+  await expect(page.locator("#status")).toContainText("Compilato ed eseguito");
+  await end(page);
+  await expect(page.locator("#console")).toHaveText("eof");
+  await run(
+    page,
+    "#include <iostream>\nint main(){int x;int s=0;while(std::cin>>x)s+=x;std::cout<<s;}",
+    "2 3",
+  );
+  await expect(page.locator("#status")).toContainText("Compilato ed eseguito");
+  await end(page);
+  await expect(page.locator("#console")).toHaveText("5");
 });
 
 test("C++23 reale nella compilazione e nell’AST, con modalità manuale persistente per codice avanzato", async ({

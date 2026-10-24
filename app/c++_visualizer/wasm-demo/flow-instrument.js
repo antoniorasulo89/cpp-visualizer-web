@@ -301,8 +301,19 @@ export function instrumentFlow(ast, generated) {
     // begins ("int x; x=1;" without whitespace). Finish its observers and
     // scopes before opening any expression wrapper for that next statement.
     if (n.kind === "DeclStmt") insert(end, declarations(n), -20000);
+    const expression = unwrap(n);
+    const standaloneInput =
+      generated.automatic &&
+      ((expression?.kind === "CXXOperatorCallExpr" &&
+        [...walk(expression.inner?.[0])].some(
+          (c) => c.referencedDecl?.name === "operator>>",
+        )) ||
+        (expression?.kind === "CallExpr" &&
+          [...walk(expression.inner?.[0])].some(
+            (c) => c.referencedDecl?.name === "getline",
+          )));
     if (
-      (generated.automatic || generated.flow?.requiredInputs?.includes(line)) &&
+      (standaloneInput || generated.flow?.requiredInputs?.includes(line)) &&
       [...walk(n)].some(
         (c) =>
           c.referencedDecl?.name === "operator>>" ||
